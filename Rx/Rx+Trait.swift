@@ -42,7 +42,7 @@ public extension ObservableType {
     }
 }
 
-// MARK: - Binder
+// MARK: - Binding
 
 public extension Reactive where Base: AnyObject {
     public func makeBinder(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
@@ -51,10 +51,18 @@ public extension Reactive where Base: AnyObject {
         }
     }
     
+    public subscript(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
+        return makeBinder(action)
+    }
+    
     public func makeBinder<Value>(_ action: @escaping (Base) -> (Value) -> ()) -> Binder<Value> {
         return Binder(base) { (base, value) in
             action(base)(value)
         }
+    }
+    
+    public subscript<Value>(_ action: @escaping (Base) -> (Value) -> ()) -> Binder<Value> {
+        return makeBinder(action)
     }
     
     public func makeBinder<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> ()) -> Binder<(V1, V2)> {
@@ -63,10 +71,42 @@ public extension Reactive where Base: AnyObject {
         }
     }
     
+    public subscript<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> ()) -> Binder<(V1, V2)> {
+        return makeBinder(action)
+    }
+    
     public func makeBinder<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> ()) -> Binder<(V1, V2, V3)> {
         return Binder(base) { (base, value) in
             action(base)(value.0, value.1, value.2)
         }
     }
+    
+    public subscript<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> ()) -> Binder<(V1, V2, V3)> {
+        return makeBinder(action)
+    }
 }
 
+public extension ObservableType {
+    public func bind<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+        return asObservable().subscribe(onNext: { [weak weakTarget = target] (e) in
+            if let target = weakTarget {
+                action(target, e)
+            }
+        })
+    }
+    
+    public func bind<A: AnyObject>(to target: A, action: @escaping (A) -> (E) -> Void) -> Disposable {
+        let disposable = Disposables.create()
+        
+        let observer = AnyObserver { [weak weakTarget = target] (e: RxSwift.Event<E>) in
+            if let target = weakTarget {
+                switch e {
+                case let .next(value): action(target)(value)
+                default: disposable.dispose()
+                }
+            }
+        }
+        
+        return Disposables.create(asObservable().subscribe(observer), disposable)
+    }
+}
