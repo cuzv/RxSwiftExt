@@ -87,7 +87,7 @@ public extension Reactive where Base: AnyObject {
 }
 
 public extension ObservableType {
-    public func bind<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+    public func subscribeNext<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
         return asObservable().subscribe(onNext: { [weak weakTarget = target] (e) in
             if let target = weakTarget {
                 action(target, e)
@@ -95,7 +95,40 @@ public extension ObservableType {
         })
     }
     
-    public func bind<A: AnyObject>(to target: A, action: @escaping (A) -> (E) -> Void) -> Disposable {
+    public func subscribeWeakify<A: AnyObject>(_ target: A, on: @escaping (A, Event<E>) -> Void) -> Disposable {
+        return asObservable().subscribe { [weak weakTarget = target] event in
+            if let target = weakTarget {
+                on(target, event)
+            }
+        }
+    }
+    
+    public func subscribeWeakify<A: AnyObject>(
+        target: A,
+        onNext: ((A, E) -> Void)? = nil,
+        onError: ((A,Swift.Error) -> Void)? = nil,
+        onCompleted: ((A) -> Void)? = nil,
+        onDisposed: ((A) -> Void)? = nil) -> Disposable{
+        return asObservable().subscribe(onNext: { [weak weakTarget = target] e in
+            if let target = weakTarget {
+                onNext?(target, e)
+            }
+            }, onError: { [weak weakTarget = target] e in
+                if let target = weakTarget {
+                    onError?(target, e)
+                }
+            }, onCompleted: { [weak weakTarget = target] in
+                if let target = weakTarget {
+                    onCompleted?(target)
+                }
+            }, onDisposed: { [weak weakTarget = target] in
+                if let target = weakTarget {
+                    onDisposed?(target)
+                }
+        })
+    }
+    
+    public func subscribeNext<A: AnyObject>(to target: A, action: @escaping (A) -> (E) -> Void) -> Disposable {
         let disposable = Disposables.create()
         
         let observer = AnyObserver { [weak weakTarget = target] (e: RxSwift.Event<E>) in
