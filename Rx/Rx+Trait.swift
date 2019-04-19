@@ -10,7 +10,7 @@ public enum RxScheduler {
     case concurrent(DispatchQoS)
     case operation(OperationQueue)
     
-    func toImmediateScheduler() -> ImmediateSchedulerType {
+    public func toImmediateScheduler() -> ImmediateSchedulerType {
         switch self {
         case .main: return MainScheduler.instance
         case let .serial(qos): return SerialDispatchQueueScheduler(qos: qos)
@@ -20,7 +20,7 @@ public enum RxScheduler {
     }
 }
 
-public extension ObservableType {
+extension ObservableType {
     public func observeOn(scheduler: RxScheduler) -> Observable<Self.E> {
         return observeOn(scheduler.toImmediateScheduler())
     }
@@ -32,7 +32,7 @@ public extension ObservableType {
 
 // MARK: - Operator
 
-public extension ObservableType {
+extension ObservableType {
     public func void() -> Observable<Void> {
         return asObservable().map({ _ in })
     }
@@ -42,13 +42,13 @@ public extension ObservableType {
     }
     
     public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
-        return asObservable().catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty()
+        return asObservable().catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
     }
 }
 
 // MARK: - Binding
 
-public extension Reactive where Base: AnyObject {
+extension Reactive where Base: AnyObject {
     public func makeBinder(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
         return Binder(base) { (base, _) in
             action(base)()
@@ -90,7 +90,15 @@ public extension Reactive where Base: AnyObject {
     }
 }
 
-public extension ObservableType {
+extension Reactive where Base: AnyObject {
+    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) {
+        _ = observable.takeUntil(deallocated).subscribeNext(to: base) { (base, t) in
+            action(base, t)
+        }
+    }
+}
+
+extension ObservableType {
     public func subscribeNext<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
         return asObservable().subscribe(onNext: { [weak weakTarget = target] (e) in
             if let target = weakTarget {
