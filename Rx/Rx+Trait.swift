@@ -91,8 +91,9 @@ extension Reactive where Base: AnyObject {
 }
 
 extension Reactive where Base: AnyObject {
-    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) {
-        _ = observable.takeUntil(deallocated).subscribeNext(to: base) { (base, t) in
+    @discardableResult
+    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) -> Disposable {
+        return observable.takeUntil(deallocated).subscribeNext(to: base) { (base, t) in
             action(base, t)
         }
     }
