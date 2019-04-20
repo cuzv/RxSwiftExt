@@ -90,69 +90,39 @@ extension Reactive where Base: AnyObject {
     }
 }
 
-extension Reactive where Base: AnyObject {
-    @discardableResult
-    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) -> Disposable {
-        return observable.takeUntil(deallocated).subscribeNext(to: base) { (base, t) in
-            action(base, t)
+extension ObservableType {
+    public func bind<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+        return asObservable().bind { [weak weakTarget = target] e in
+            if let target = weakTarget {
+                action(target, e)
+            }
         }
     }
 }
 
+public protocol Deallocatable: AnyObject, ReactiveCompatible {}
+extension NSObject: Deallocatable {}
+
 extension ObservableType {
-    public func subscribeNext<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
-        return asObservable().subscribe(onNext: { [weak weakTarget = target] (e) in
-            if let target = weakTarget {
-                action(target, e)
-            }
-        })
-    }
-    
-    public func subscribeWeakify<A: AnyObject>(_ target: A, on: @escaping (A, Event<E>) -> Void) -> Disposable {
-        return asObservable().subscribe { [weak weakTarget = target] event in
-            if let target = weakTarget {
-                on(target, event)
-            }
+    @discardableResult
+    public func bind<A: Deallocatable>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+        return asObservable()
+            .takeUntil(target.rx.deallocated)
+            .bind { [weak weakTarget = target] e in
+                if let target = weakTarget {
+                    action(target, e)
+                }
         }
     }
-    
-    public func subscribeWeakify<A: AnyObject>(
-        target: A,
-        onNext: ((A, E) -> Void)? = nil,
-        onError: ((A,Swift.Error) -> Void)? = nil,
-        onCompleted: ((A) -> Void)? = nil,
-        onDisposed: ((A) -> Void)? = nil) -> Disposable{
-        return asObservable().subscribe(onNext: { [weak weakTarget = target] e in
-            if let target = weakTarget {
-                onNext?(target, e)
-            }
-            }, onError: { [weak weakTarget = target] e in
-                if let target = weakTarget {
-                    onError?(target, e)
-                }
-            }, onCompleted: { [weak weakTarget = target] in
-                if let target = weakTarget {
-                    onCompleted?(target)
-                }
-            }, onDisposed: { [weak weakTarget = target] in
-                if let target = weakTarget {
-                    onDisposed?(target)
-                }
-        })
-    }
-    
-    public func subscribeNext<A: AnyObject>(to target: A, action: @escaping (A) -> (E) -> Void) -> Disposable {
-        let disposable = Disposables.create()
-        
-        let observer = AnyObserver { [weak weakTarget = target] (e: RxSwift.Event<E>) in
-            if let target = weakTarget {
-                switch e {
-                case let .next(value): action(target)(value)
-                default: disposable.dispose()
-                }
-            }
+}
+
+extension Reactive where Base: AnyObject {
+    @discardableResult
+    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) -> Disposable {
+        return observable
+            .takeUntil(deallocated)
+            .bind(to: base) { (base, t) in
+                action(base, t)
         }
-        
-        return Disposables.create(asObservable().subscribe(observer), disposable)
     }
 }
