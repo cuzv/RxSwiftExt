@@ -11,6 +11,16 @@ extension JSON: JSONConvertible {
     }
 }
 
+extension JSON {
+    public func map<U>(_ transform: (JSON) -> U) -> U {
+        return transform(self)
+    }
+    
+    public func resolved<U: JSONConvertible>() -> U {
+        return map(U.init(json:))
+    }
+}
+
 extension Array: JSONConvertible where Element: JSONConvertible {
     public init(json: JSON) {
         self = json.arrayValue.map(Element.init(json:))
@@ -38,6 +48,12 @@ extension VoidBox: JSONConvertible {
 extension String: JSONConvertible {
     public init(json: JSON) {
         self = json.stringValue
+    }
+}
+
+extension Bool: JSONConvertible {
+    public init(json: JSON) {
+        self = json.boolValue
     }
 }
 
@@ -82,3 +98,38 @@ extension Int64: JSONConvertible {
         self = json.int64Value
     }
 }
+
+extension CGPoint: JSONConvertible {
+    public init(json: JSON) {
+        self = json.numberValue.cgPointValue
+    }
+}
+
+extension CGVector: JSONConvertible {
+    public init(json: JSON) {
+        self = json.numberValue.cgVectorValue
+    }
+}
+
+extension CGSize: JSONConvertible {
+    public init(json: JSON) {
+        self = json.numberValue.cgSizeValue
+    }
+}
+
+extension CGRect: JSONConvertible {
+    public init(json: JSON) {
+        self = json.numberValue.cgRectValue
+    }
+}
+
+extension CGFloat: JSONConvertible {
+    public init(json: JSON) {
+        #if (arch(i386) || arch(arm))
+        self = CGFloat(json.floatValue)
+        #else
+        self = CGFloat(json.doubleValue)
+        #endif
+    }
+}
+
