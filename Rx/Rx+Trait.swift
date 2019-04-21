@@ -91,7 +91,7 @@ extension Reactive where Base: AnyObject {
 }
 
 extension ObservableType {
-    public func bind<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+    public func bind<Object: AnyObject>(to target: Object, action: @escaping (Object, E) -> Void) -> Disposable {
         return asObservable()
             .bind(to: Binder<E>(target) { target, e in
                 action(target, e)
@@ -115,7 +115,7 @@ extension NSObject: Deallocatable {}
 
 extension ObservableType {
     @discardableResult
-    public func bind<A: Deallocatable>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
+    public func bind<Object: Deallocatable>(to target: Object, action: @escaping (Object, E) -> Void) -> Disposable {
         return asObservable()
             .takeUntil(target.rx.deallocated)
             .bind(to: Binder<E>(target) { target, e in
