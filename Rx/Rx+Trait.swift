@@ -50,8 +50,8 @@ extension ObservableType {
 
 extension Reactive where Base: AnyObject {
     public func makeBinder(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
-        return Binder(base) { (base, _) in
-            action(base)()
+        return Binder(base) { target, _ in
+            action(target)()
         }
     }
     
@@ -60,8 +60,8 @@ extension Reactive where Base: AnyObject {
     }
     
     public func makeBinder<Value>(_ action: @escaping (Base) -> (Value) -> ()) -> Binder<Value> {
-        return Binder(base) { (base, value) in
-            action(base)(value)
+        return Binder(base) { target, value in
+            action(target)(value)
         }
     }
     
@@ -70,8 +70,8 @@ extension Reactive where Base: AnyObject {
     }
     
     public func makeBinder<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> ()) -> Binder<(V1, V2)> {
-        return Binder(base) { (base, value) in
-            action(base)(value.0, value.1)
+        return Binder(base) { target, value in
+            action(target)(value.0, value.1)
         }
     }
     
@@ -80,8 +80,8 @@ extension Reactive where Base: AnyObject {
     }
     
     public func makeBinder<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> ()) -> Binder<(V1, V2, V3)> {
-        return Binder(base) { (base, value) in
-            action(base)(value.0, value.1, value.2)
+        return Binder(base) { target, value in
+            action(target)(value.0, value.1, value.2)
         }
     }
     
@@ -92,10 +92,20 @@ extension Reactive where Base: AnyObject {
 
 extension ObservableType {
     public func bind<A: AnyObject>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
-        return asObservable().bind { [weak weakTarget = target] e in
-            if let target = weakTarget {
+        return asObservable()
+            .bind(to: Binder<E>(target) { target, e in
                 action(target, e)
-            }
+            })
+    }
+}
+
+extension Reactive where Base: AnyObject {
+    @discardableResult
+    public func bind<E>(_ observable: Observable<E>, action: @escaping (Base, E) -> Void) -> Disposable {
+        return observable
+            .takeUntil(deallocated)
+            .bind(to: base) { target, e in
+                action(target, e)
         }
     }
 }
@@ -108,21 +118,22 @@ extension ObservableType {
     public func bind<A: Deallocatable>(to target: A, action: @escaping (A, E) -> Void) -> Disposable {
         return asObservable()
             .takeUntil(target.rx.deallocated)
-            .bind { [weak weakTarget = target] e in
-                if let target = weakTarget {
-                    action(target, e)
-                }
-        }
+            .bind(to: Binder<E>(target) { target, e in
+                action(target, e)
+            })
     }
-}
-
-extension Reactive where Base: AnyObject {
+    
     @discardableResult
-    public func bind<T>(_ observable: Observable<T>, action: @escaping (Base, T) -> Void) -> Disposable {
-        return observable
-            .takeUntil(deallocated)
-            .bind(to: base) { (base, t) in
-                action(base, t)
-        }
+    public func bind<Object: Deallocatable>(to target: Object, keyPath: ReferenceWritableKeyPath<Object, E>) -> Disposable {
+        return asObservable()
+            .takeUntil(target.rx.deallocated)
+            .bind(to: Binder<E>(target) { target, e in
+                target[keyPath: keyPath] = e
+            })
+    }
+    
+    @discardableResult
+    public func bind<Object: Deallocatable>(to target: Object, keyPath: ReferenceWritableKeyPath<Object, E?>) -> Disposable {
+        return map(Optional.init).bind(to: target, keyPath: keyPath)
     }
 }
