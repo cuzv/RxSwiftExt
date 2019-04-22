@@ -38,11 +38,15 @@ extension ObservableType {
     }
     
     public func ignoreNil<R>() -> Observable<R> where E == R? {
-        return asObservable().flatMap { $0.map(Observable.just) ?? .empty() }
+        return asObservable().flatMap(Observable.from(optional:))
     }
     
-    public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
-        return asObservable().catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
+    func ignoreErrors() -> Observable<E> {
+        return asObservable().catchError { _ in .empty() }
+    }
+    
+    public func ignoreErrorsAndNil<R>() -> Observable<R> where E == R? {
+        return asObservable().ignoreErrors().ignoreNil()
     }
 }
 
