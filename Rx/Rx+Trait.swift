@@ -38,15 +38,11 @@ extension ObservableType {
     }
     
     public func ignoreNil<R>() -> Observable<R> where E == R? {
-        return asObservable().flatMap(Observable.from(optional:))
+        return asObservable().flatMap { $0.map(Observable.just) ?? .empty() }
     }
     
-    func ignoreErrors() -> Observable<E> {
-        return asObservable().catchError { _ in .empty() }
-    }
-    
-    public func ignoreErrorsAndNil<R>() -> Observable<R> where E == R? {
-        return asObservable().ignoreErrors().ignoreNil()
+    public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
+        return asObservable().catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
     }
 }
 
@@ -105,9 +101,6 @@ extension Reactive where Base: AnyObject {
     }
 }
 
-public protocol Deallocatable: AnyObject, ReactiveCompatible {}
-extension NSObject: Deallocatable {}
-
 extension ObservableType {
     public func bind<Target>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
         return asObservable()
@@ -117,15 +110,8 @@ extension ObservableType {
         }
     }
     
-    public func bind<Target: AnyObject>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
-        return asObservable()
-            .bind(to: Binder<E>(target) { target, e in
-                action(target, e)
-            })
-    }
-    
     @discardableResult
-    public func bind<Target: Deallocatable>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
         return asObservable()
             .takeUntil(target.rx.deallocated)
             .bind(to: Binder<E>(target) { target, e in
@@ -140,8 +126,12 @@ extension ObservableType {
             })
     }
     
+    public func bind<Target: AnyObject>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
+        return map(Optional.init).bind(to: target, keyPath: keyPath)
+    }
+    
     @discardableResult
-    public func bind<Target: Deallocatable>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E>) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E>) -> Disposable {
         return asObservable()
             .takeUntil(target.rx.deallocated)
             .bind(to: Binder<E>(target) { target, e in
@@ -149,12 +139,8 @@ extension ObservableType {
             })
     }
     
-    public func bind<Target: AnyObject>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
-        return map(Optional.init).bind(to: target, keyPath: keyPath)
-    }
-    
     @discardableResult
-    public func bind<Target: Deallocatable>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
         return map(Optional.init).bind(to: target, keyPath: keyPath)
     }
 }
