@@ -25,7 +25,7 @@ extension ObservableType {
         return observeOn(scheduler.toImmediateScheduler())
     }
     
-    public func subscribeOn(_ scheduler: RxScheduler) -> RxSwift.Observable<Self.E> {
+    public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Self.E> {
         return subscribeOn(scheduler.toImmediateScheduler())
     }
 }
@@ -38,11 +38,11 @@ extension ObservableType {
     }
     
     public func ignoreNil<R>() -> Observable<R> where E == R? {
-        return flatMap { $0.map(Observable.just) ?? .empty() }
+        return flatMap(Observable.from(optional:))
     }
     
     public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
-        return catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
+        return catchErrorJustReturn(nil).flatMap(Observable.from(optional:))
     }
 }
 
