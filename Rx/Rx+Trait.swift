@@ -44,6 +44,10 @@ extension ObservableType {
     public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
         return catchErrorJustReturn(nil).flatMap(Observable.from(optional:))
     }
+    
+    public func map<R>(_ keyPath: KeyPath<E, R>) -> Observable<R> {
+        return map { $0[keyPath: keyPath] }
+    }
 }
 
 // MARK: - Binding
