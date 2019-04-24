@@ -34,15 +34,15 @@ extension ObservableType {
 
 extension ObservableType {
     public func void() -> Observable<Void> {
-        return asObservable().map({ _ in })
+        return map({ _ in })
     }
     
     public func ignoreNil<R>() -> Observable<R> where E == R? {
-        return asObservable().flatMap { $0.map(Observable.just) ?? .empty() }
+        return flatMap { $0.map(Observable.just) ?? .empty() }
     }
     
     public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
-        return asObservable().catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
+        return catchErrorJustReturn(nil).flatMap { $0.map(Observable.just) ?? .empty() }
     }
 }
 
@@ -90,57 +90,92 @@ extension Reactive where Base: AnyObject {
     }
 }
 
-extension Reactive where Base: AnyObject {
-    @discardableResult
-    public func bind<E>(_ observable: Observable<E>, action: @escaping (Base, E) -> Void) -> Disposable {
-        return observable
-            .takeUntil(deallocated)
-            .bind(to: base) { target, e in
-                action(target, e)
-        }
-    }
-}
-
 extension ObservableType {
     public func bind<Target>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
-        return asObservable()
-            .observeOn(MainScheduler.instance)
-            .bind { e in
-                action(target, e)
+        return observeOn(MainScheduler.instance).bind { e in
+            action(target, e)
         }
     }
     
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
-        return asObservable()
-            .takeUntil(target.rx.deallocated)
-            .bind(to: Binder<E>(target) { target, e in
-                action(target, e)
-            })
-    }
-    
-    public func bind<Target: AnyObject>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E>) -> Disposable {
-        return asObservable()
-            .bind(to: Binder<E>(target) { target, e in
-                target[keyPath: keyPath] = e
-            })
-    }
-    
-    public func bind<Target: AnyObject>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
-        return map(Optional.init).bind(to: target, keyPath: keyPath)
+        return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: Binder(target, binding: action))
     }
     
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E>) -> Disposable {
-        return asObservable()
-            .takeUntil(target.rx.deallocated)
-            .bind(to: Binder<E>(target) { target, e in
-                target[keyPath: keyPath] = e
-            })
+        return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
     
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
-        return map(Optional.init).bind(to: target, keyPath: keyPath)
+        return map(Optional.init).observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
+}
+
+extension ReplaySubject: ReactiveCompatible {}
+extension BehaviorSubject: ReactiveCompatible {}
+extension PublishSubject: ReactiveCompatible {}
+extension BehaviorRelay: ReactiveCompatible {}
+extension PublishRelay: ReactiveCompatible {}
+
+extension ObservableType {
+    @discardableResult
+    public func bind<O: AnyObject & ReactiveCompatible & ObserverType>(to observer: O) -> Disposable where O.E == E {
+        return observeOn(MainScheduler.instance).takeUntil(observer.rx.deallocated).subscribe { [weak observer] e in
+            observer?.on(e)
+        }
+    }
+    
+    @discardableResult
+    public func bind<O: AnyObject & ReactiveCompatible & ObserverType>(to observer: O) -> Disposable where O.E == E? {
+        return map(Optional.init).bind(to: observer)
+    }
+    
+    @discardableResult
+    public func bind(to relay: PublishRelay<E>) -> Disposable {
+        return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
+            switch e {
+            case let .next(element):
+                relay?.accept(element)
+            case let .error(error):
+                rxFatalErrorInDebug("Binding error to publish relay: \(error)")
+            case .completed:
+                break
+            }
+        }
+    }
+    
+    @discardableResult
+    public func bind(to relay: PublishRelay<E?>) -> Disposable {
+        return map(Optional.init).bind(to: relay)
+    }
+    
+    @discardableResult
+    public func bind(to relay: BehaviorRelay<E>) -> Disposable {
+        return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
+            switch e {
+            case let .next(element):
+                relay?.accept(element)
+            case let .error(error):
+                rxFatalErrorInDebug("Binding error to behavior relay: \(error)")
+                break
+            case .completed:
+                break
+            }
+        }
+    }
+    
+    @discardableResult
+    public func bind(to relay: BehaviorRelay<E?>) -> Disposable {
+        return map(Optional.init).bind(to: relay)
+    }
+}
+
+private func rxFatalErrorInDebug(_ lastMessage: @autoclosure () -> String, file: StaticString = #file, line: UInt = #line) {
+    #if DEBUG
+    fatalError(lastMessage(), file: file, line: line)
+    #else
+    print("\(file):\(line): \(lastMessage())")
+    #endif
 }
