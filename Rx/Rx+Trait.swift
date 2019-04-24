@@ -50,46 +50,52 @@ extension ObservableType {
     }
 }
 
+extension ObservableType where E == String {
+    public func ignoreEmpty() -> Observable<String> {
+        return map { e -> String? in e.isEmpty ? nil : e }.ignoreNil()
+    }
+}
+
 // MARK: - Binding
 
 extension Reactive where Base: AnyObject {
-    public func makeBinder(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
+    public func makeBinder(_ action: @escaping (Base) -> () -> Void) -> Binder<Void> {
         return Binder(base) { target, _ in
             action(target)()
         }
     }
     
-    public subscript(_ action: @escaping (Base) -> () -> ()) -> Binder<Void> {
+    public subscript(_ action: @escaping (Base) -> () -> Void) -> Binder<Void> {
         return makeBinder(action)
     }
     
-    public func makeBinder<Value>(_ action: @escaping (Base) -> (Value) -> ()) -> Binder<Value> {
+    public func makeBinder<Value>(_ action: @escaping (Base) -> (Value) -> Void) -> Binder<Value> {
         return Binder(base) { target, value in
             action(target)(value)
         }
     }
     
-    public subscript<Value>(_ action: @escaping (Base) -> (Value) -> ()) -> Binder<Value> {
+    public subscript<Value>(_ action: @escaping (Base) -> (Value) -> Void) -> Binder<Value> {
         return makeBinder(action)
     }
     
-    public func makeBinder<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> ()) -> Binder<(V1, V2)> {
+    public func makeBinder<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> Void) -> Binder<(V1, V2)> {
         return Binder(base) { target, value in
             action(target)(value.0, value.1)
         }
     }
     
-    public subscript<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> ()) -> Binder<(V1, V2)> {
+    public subscript<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> Void) -> Binder<(V1, V2)> {
         return makeBinder(action)
     }
     
-    public func makeBinder<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> ()) -> Binder<(V1, V2, V3)> {
+    public func makeBinder<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> Void) -> Binder<(V1, V2, V3)> {
         return Binder(base) { target, value in
             action(target)(value.0, value.1, value.2)
         }
     }
     
-    public subscript<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> ()) -> Binder<(V1, V2, V3)> {
+    public subscript<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> Void) -> Binder<(V1, V2, V3)> {
         return makeBinder(action)
     }
 }
@@ -104,6 +110,14 @@ extension ObservableType {
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: Binder(target, binding: action))
+    }
+    
+    @discardableResult
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (E) -> Void) -> Disposable {
+        let binder = Binder(target) { target, value in
+            action(target)(value)
+        }
+        return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
     
     @discardableResult
