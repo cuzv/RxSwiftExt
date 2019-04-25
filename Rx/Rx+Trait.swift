@@ -113,6 +113,14 @@ extension ObservableType {
     }
     
     @discardableResult
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target, E) -> Void)?) -> Disposable {
+        if let action = action {
+            return bind(to: target, action: action)
+        }
+        return Disposables.create()
+    }
+    
+    @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (E) -> Void) -> Disposable {
         let binder = Binder(target) { target, value in
             action(target)(value)
