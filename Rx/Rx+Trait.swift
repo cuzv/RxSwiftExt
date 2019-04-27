@@ -48,6 +48,14 @@ extension ObservableType {
     public func map<R>(_ keyPath: KeyPath<E, R>) -> Observable<R> {
         return map { $0[keyPath: keyPath] }
     }
+    
+    public func filter(_ keyPath: KeyPath<E, Bool>) -> Observable<E> {
+        return filter { $0[keyPath: keyPath] }
+    }
+    
+    public func filterReversed(_ keyPath: KeyPath<E, Bool>) -> Observable<E> {
+        return filter { !$0[keyPath: keyPath] }
+    }
 }
 
 extension ObservableType where E == String {
