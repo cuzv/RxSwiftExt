@@ -1,5 +1,6 @@
 import Foundation
 import RxSwift
+import RxRelay
 import RxCocoa
 
 // MARK: - Schedluer
@@ -21,11 +22,11 @@ public enum RxScheduler {
 }
 
 extension ObservableType {
-    public func observeOn(scheduler: RxScheduler) -> Observable<Self.E> {
+    public func observeOn(scheduler: RxScheduler) -> Observable<Element> {
         return observeOn(scheduler.toImmediateScheduler())
     }
     
-    public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Self.E> {
+    public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Element> {
         return subscribeOn(scheduler.toImmediateScheduler())
     }
 }
@@ -37,28 +38,28 @@ extension ObservableType {
         return map({ _ in })
     }
     
-    public func ignoreNil<R>() -> Observable<R> where E == R? {
+    public func ignoreNil<Revision>() -> Observable<Revision> where Element == Revision? {
         return flatMap(Observable.from(optional:))
     }
     
-    public func ignoreErrorAndNil<R>() -> Observable<R> where E == R? {
+    public func ignoreErrorAndNil<Revision>() -> Observable<Revision> where Element == Revision? {
         return catchErrorJustReturn(nil).flatMap(Observable.from(optional:))
     }
     
-    public func map<R>(_ keyPath: KeyPath<E, R>) -> Observable<R> {
+    public func map<Revision>(_ keyPath: KeyPath<Element, Revision>) -> Observable<Revision> {
         return map { $0[keyPath: keyPath] }
     }
     
-    public func filter(_ keyPath: KeyPath<E, Bool>) -> Observable<E> {
+    public func filter(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
         return filter { $0[keyPath: keyPath] }
     }
     
-    public func filterReversed(_ keyPath: KeyPath<E, Bool>) -> Observable<E> {
+    public func filterReversed(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
         return filter { !$0[keyPath: keyPath] }
     }
 }
 
-extension ObservableType where E == String {
+extension ObservableType where Element == String {
     public func ignoreEmpty() -> Observable<String> {
         return map { e -> String? in e.isEmpty ? nil : e }.ignoreNil()
     }
@@ -109,19 +110,19 @@ extension Reactive where Base: AnyObject {
 }
 
 extension ObservableType {
-    public func bind<Target>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
+    public func bind<Target>(to target: Target, action: @escaping (Target, Element) -> Void) -> Disposable {
         return observeOn(MainScheduler.instance).bind { e in
             action(target, e)
         }
     }
     
     @discardableResult
-    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, E) -> Void) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, Element) -> Void) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: Binder(target, binding: action))
     }
     
     @discardableResult
-    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target, E) -> Void)?) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target, Element) -> Void)?) -> Disposable {
         if let action = action {
             return bind(to: target, action: action)
         }
@@ -129,7 +130,7 @@ extension ObservableType {
     }
     
     @discardableResult
-    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (E) -> Void) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (Element) -> Void) -> Disposable {
         let binder = Binder(target) { target, value in
             action(target)(value)
         }
@@ -137,12 +138,12 @@ extension ObservableType {
     }
     
     @discardableResult
-    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E>) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
     
     @discardableResult
-    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, E?>) -> Disposable {
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element?>) -> Disposable {
         return map(Optional.init).observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
 }
@@ -155,19 +156,19 @@ extension PublishRelay: ReactiveCompatible {}
 
 extension ObservableType {
     @discardableResult
-    public func bind<O: AnyObject & ReactiveCompatible & ObserverType>(to observer: O) -> Disposable where O.E == E {
+    public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(to observer: Observer) -> Disposable where Observer.Element == Element {
         return observeOn(MainScheduler.instance).takeUntil(observer.rx.deallocated).subscribe { [weak observer] e in
             observer?.on(e)
         }
     }
     
     @discardableResult
-    public func bind<O: AnyObject & ReactiveCompatible & ObserverType>(to observer: O) -> Disposable where O.E == E? {
+    public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(to observer: Observer) -> Disposable where Observer.Element == Element? {
         return map(Optional.init).bind(to: observer)
     }
     
     @discardableResult
-    public func bind(to relay: PublishRelay<E>) -> Disposable {
+    public func bind(to relay: PublishRelay<Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
             switch e {
             case let .next(element):
@@ -181,12 +182,12 @@ extension ObservableType {
     }
     
     @discardableResult
-    public func bind(to relay: PublishRelay<E?>) -> Disposable {
+    public func bind(to relay: PublishRelay<Element?>) -> Disposable {
         return map(Optional.init).bind(to: relay)
     }
     
     @discardableResult
-    public func bind(to relay: BehaviorRelay<E>) -> Disposable {
+    public func bind(to relay: BehaviorRelay<Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
             switch e {
             case let .next(element):
@@ -201,7 +202,7 @@ extension ObservableType {
     }
     
     @discardableResult
-    public func bind(to relay: BehaviorRelay<E?>) -> Disposable {
+    public func bind(to relay: BehaviorRelay<Element?>) -> Disposable {
         return map(Optional.init).bind(to: relay)
     }
 }
