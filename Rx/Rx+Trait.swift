@@ -116,11 +116,13 @@ extension ObservableType {
         }
     }
     
+    /// Bind Observable to Closure.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, Element) -> Void) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: Binder(target, binding: action))
     }
     
+    /// Bind Observable to Optional Closure.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target, Element) -> Void)?) -> Disposable {
         if let action = action {
@@ -129,6 +131,25 @@ extension ObservableType {
         return Disposables.create()
     }
     
+    /// Bind Observable to Closure that take no event element.
+    @discardableResult
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> Void) -> Disposable {
+        let binder = Binder<Element>(target) { target, _ in
+            action(target)
+        }
+        return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
+    }
+    
+    /// Bind Observable to Optional Closure that take no event element.
+    @discardableResult
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target) -> Void)?) -> Disposable {
+        if let action = action {
+            return bind(to: target, action: action)
+        }
+        return Disposables.create()
+    }
+    
+    /// Bind Observable to Method.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (Element) -> Void) -> Disposable {
         let binder = Binder(target) { target, value in
@@ -137,11 +158,22 @@ extension ObservableType {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
     
+    /// Bind Observable to Method that take no event element.
+    @discardableResult
+    public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> () -> Void) -> Disposable {
+        let binder = Binder<Element>(target) { target, _ in
+            action(target)()
+        }
+        return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
+    }
+    
+    /// Bind Observable to KeyPath.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
     
+    /// Bind Observable to Optional KeyPath.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element?>) -> Disposable {
         return map(Optional.init).observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
