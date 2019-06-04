@@ -97,7 +97,7 @@ extension Reactive where Base: AnyObject & ReactiveCompatible {
     }
     
     /// action as an closure that take one extra arguments.
-    private func makeBindingTarget<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
+    public func makeBindingTarget<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
         return BindingTarget(deallocated: base.rx.deallocated) { [weak base = base] value in
             if let base = base {
                 action(base, value)
@@ -106,7 +106,7 @@ extension Reactive where Base: AnyObject & ReactiveCompatible {
     }
     
     /// action as an  optional closure that take one extra arguments.
-    private func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
+    public func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
         return BindingTarget(deallocated: base.rx.deallocated) { [weak base = base] value in
             if let base = base {
                 action?(base, value)
@@ -155,7 +155,7 @@ extension Reactive where Base: AnyObject & ReactiveCompatible {
     }
     
     /// action as a method that take one arguments.
-    private func makeBindingTarget<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
+    public func makeBindingTarget<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
         return BindingTarget(deallocated: base.rx.deallocated, action: action(base))
     }
 
