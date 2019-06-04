@@ -28,6 +28,26 @@ extension ObservableType {
 
 extension ObservableType where Element == String {
     public func ignoreEmpty() -> Observable<String> {
-        return map { e -> String? in e.isEmpty ? nil : e }.ignoreNil()
+        return map(Optional.init).ignoreEmpty()
+    }
+}
+
+extension ObservableType where Element == String? {
+    public func ignoreEmpty() -> Observable<String> {
+        return ignoreNil().filterReversed(\.isEmpty)
+    }
+}
+
+extension ObservableType where Element == Bool {
+    public func reversed() -> Observable<Bool> {
+        return map({ !$0 })
+    }
+    
+    public func ignoreTrue() -> Observable<Bool> {
+        return filter({ !$0 })
+    }
+    
+    public func ignoreFalse() -> Observable<Bool> {
+        return filter({ $0 })
     }
 }
