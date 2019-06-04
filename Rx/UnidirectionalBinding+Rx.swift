@@ -71,11 +71,10 @@ extension BindingTargetProvider {
     }
 }
 
-extension BindingTargetProvider {
+extension BindingTargetProvider where Value == Void {
     @discardableResult
     public static func =>
         <Source: ObservableType>(source: Source, provider: Self) -> Disposable
-        where Value == Void
     {
         let bindingTarget = provider.bindingTarget
         return source.asObservable()
