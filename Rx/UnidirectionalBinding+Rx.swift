@@ -10,32 +10,28 @@ public protocol BindingTargetProvider {
 }
 
 public struct BindingTarget<Value>: BindingTargetProvider {
-    public let deallocated: Observable<Void>
+    public let lifetime: Lifetime
     public let action: (Value) -> Void
     
     public var bindingTarget: BindingTarget<Value> {
         return self
     }
     
-    public init(deallocated: Observable<Void>, action: @escaping (Value) -> Void) {
-        self.deallocated = deallocated
+    public init(lifetime: Lifetime, action: @escaping (Value) -> Void) {
+        self.lifetime = lifetime
         self.action = action
     }
 }
 
 extension BindingTarget {
-    public init<Object: AnyObject>(deallocated: Observable<Void>, object: Object, keyPath: WritableKeyPath<Object, Value>) {
-        self.init(deallocated: deallocated) { [weak object = object] value in
+    public init<Object: AnyObject>(object: Object, action: @escaping (Value) -> Void) {
+        self.init(lifetime: .of(object), action: action)
+    }
+    
+    public init<Object: AnyObject>(object: Object, keyPath: WritableKeyPath<Object, Value>) {
+        self.init(object: object) { [weak object = object] value in
             object?[keyPath: keyPath] = value
         }
-    }
-    
-    public init<Object: AnyObject & ReactiveCompatible>(object: Object, action: @escaping (Value) -> Void) {
-        self.init(deallocated: object.rx.deallocated, action: action)
-    }
-    
-    public init<Object: AnyObject & ReactiveCompatible>(object: Object, keyPath: WritableKeyPath<Object, Value>) {
-        self.init(deallocated: object.rx.deallocated, object: object, keyPath: keyPath)
     }
 }
 
@@ -58,7 +54,7 @@ extension BindingTargetProvider {
     {
         let bindingTarget = provider.bindingTarget
         return source.asObservable()
-            .takeUntil(bindingTarget.deallocated)
+            .takeDuring(bindingTarget.lifetime)
             .bind(onNext: bindingTarget.action)
     }
     
@@ -79,73 +75,60 @@ extension BindingTargetProvider where Value == Void {
         let bindingTarget = provider.bindingTarget
         return source.asObservable()
             .map({ _ in })
-            .takeUntil(bindingTarget.deallocated)
+            .takeDuring(bindingTarget.lifetime)
             .bind(onNext: bindingTarget.action)
     }
 }
 
 // MARK: - Reactive Extensions
 
-extension Reactive where Base: AnyObject & ReactiveCompatible {
+extension Reactive where Base: AnyObject {
     private func makeBindingTarget<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
-        return BindingTarget(deallocated: base.rx.deallocated, object: base, keyPath: keyPath)
+        return .init(object: base, keyPath: keyPath)
     }
     
     public subscript<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
-        return makeBindingTarget(keyPath: keyPath)
+        return .init(object: base, keyPath: keyPath)
     }
     
-    /// action as an closure that take one extra arguments.
-    public func makeBindingTarget<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
-        return BindingTarget(deallocated: base.rx.deallocated) { [weak base = base] value in
-            if let base = base {
-                action(base, value)
-            }
-        }
+    public subscript<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
+        return .init(object: base, action: action(base))
     }
     
-    /// action as an  optional closure that take one extra arguments.
     public func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
-        return BindingTarget(deallocated: base.rx.deallocated) { [weak base = base] value in
+        return .init(object: base) { [weak base = base] value in
             if let base = base {
                 action?(base, value)
             }
         }
     }
-    
-    /// action as an closure that take one extra arguments.
-    public subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
-        return makeBindingTarget(action: action)
-    }
-    
-    /// action as an optional closure that take one extra arguments.
+
     public subscript<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
         return makeBindingTarget(action: action)
     }
     
-    /// action as an closure that take no extra arguments.
-    public subscript(action: @escaping (Base) -> Void) -> BindingTarget<Void> {
-        return makeBindingTarget { base, _ in
-            action(base)
-        }
+    public subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
+        return makeBindingTarget(action: action)
+    }
+
+    public subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
+        return .init(object: base, action: action(base))
     }
     
-    /// action as an optional closure that take no extra arguments.
     public subscript(action: ((Base) -> Void)?) -> BindingTarget<Void> {
         return makeBindingTarget { base, _ in
             action?(base)
         }
     }
     
-    /// action as an closure that take two extra arguments.
-    public subscript<A, B>(action: @escaping (Base, A, B) -> Void) -> BindingTarget<(A, B)> {
-        return makeBindingTarget { base, args in
-            let (a, b) = args
-            action(base, a, b)
-        }
+    public subscript(action: @escaping (Base) -> Void) -> BindingTarget<Void> {
+        return self[Optional(action)]
     }
     
-    /// action as an optional closure that take two extra arguments.
+    public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
+        return .init(object: base, action: action(base))
+    }
+
     public subscript<A, B>(action: ((Base, A, B) -> Void)?) -> BindingTarget<(A, B)> {
         return makeBindingTarget { base, args in
             let (a, b) = args
@@ -153,29 +136,23 @@ extension Reactive where Base: AnyObject & ReactiveCompatible {
         }
     }
     
-    /// action as a method that take one arguments.
-    public func makeBindingTarget<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
-        return BindingTarget(deallocated: base.rx.deallocated, action: action(base))
-    }
-
-    /// action as a method that take one arguments.
-    public subscript<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
-        return makeBindingTarget(action: action)
+    public subscript<A, B>(action: @escaping (Base, A, B) -> Void) -> BindingTarget<(A, B)> {
+        return self[Optional(action)]
     }
     
-    /// action as a method that take no arguments.
-    public subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
-        return makeBindingTarget { base, _ in
-            action(base)()
+    public subscript<A, B, C>(action: @escaping (Base) -> (A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
+        return .init(object: base, action: action(base))
+    }
+    
+    public subscript<A, B, C>(action: ((Base, A, B, C) -> Void)?) -> BindingTarget<(A, B, C)> {
+        return makeBindingTarget { base, args in
+            let (a, b, c) = args
+            action?(base, a, b, c)
         }
     }
     
-    /// action as a method that take two arguments.
-    public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
-        return makeBindingTarget { (base, args) in
-            let (a, b) = args
-            action(base)(a, b)
-        }
+    public subscript<A, B, C>(action: @escaping (Base, A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
+        return self[Optional(action)]
     }
 }
 
@@ -183,33 +160,22 @@ extension Reactive where Base: AnyObject & ReactiveCompatible {
 
 import RxRelay
 
-extension ObserverType where Self: AnyObject & ReactiveCompatible & BindingTargetProvider {
+extension ObserverType where Self: AnyObject & BindingTargetProvider {
     public var bindingTarget: BindingTarget<Element> {
         return .init(object: self, action: onNext)
     }
 }
-
-extension ReplaySubject: ReactiveCompatible {}
 extension ReplaySubject: BindingTargetProvider {}
-
-extension BehaviorSubject: ReactiveCompatible {}
 extension BehaviorSubject: BindingTargetProvider {}
-
-extension PublishSubject: ReactiveCompatible {}
 extension PublishSubject: BindingTargetProvider {}
 
 public protocol RxRelayObject: ObservableType {
     func accept(_ event: Element)
 }
-
-extension RxRelayObject where Self: AnyObject & ReactiveCompatible & BindingTargetProvider {
+extension RxRelayObject where Self: AnyObject & BindingTargetProvider {
     public var bindingTarget: BindingTarget<Element> {
         return .init(object: self, action: accept)
     }
 }
-
-extension PublishRelay: ReactiveCompatible {}
 extension PublishRelay: RxRelayObject, BindingTargetProvider {}
-
-extension BehaviorRelay: ReactiveCompatible {}
 extension BehaviorRelay: RxRelayObject, BindingTargetProvider {}
