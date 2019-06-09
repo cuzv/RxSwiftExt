@@ -2,7 +2,7 @@ import RxSwift
 import RxCocoa
 
 extension Reactive where Base: UICollectionView {
-    func nearBottom(padding constant: CGFloat = 60) -> Observable<Bool> {
+    public func nearBottom(padding constant: CGFloat = 60) -> Observable<Bool> {
         return contentOffset
             .map(\.y)
             .map { [unowned base] offsetY -> Bool in
