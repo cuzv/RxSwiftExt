@@ -2,7 +2,7 @@ import RxSwift
 
 extension ObservableType {
     public func void() -> Observable<Void> {
-        return map({ _ in })
+        return replaceWith(())
     }
     
     public func ignoreNil<Revision>() -> Observable<Revision> where Element == Revision? {
@@ -23,6 +23,10 @@ extension ObservableType {
     
     public func filterReversed(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
         return filter { !$0[keyPath: keyPath] }
+    }
+    
+    public func replaceWith<NewElement>(_ element: NewElement) -> Observable<NewElement> {
+        return map({ _ in element })
     }
 }
 
