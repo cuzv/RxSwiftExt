@@ -102,7 +102,7 @@ extension Reactive where Base: AnyObject {
             }
         }
     }
-
+    
     public subscript<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
         return makeBindingTarget(action: action)
     }
@@ -110,7 +110,7 @@ extension Reactive where Base: AnyObject {
     public subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
         return makeBindingTarget(action: action)
     }
-
+    
     public subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
         return .init(object: base, action: action(base))
     }
@@ -128,7 +128,7 @@ extension Reactive where Base: AnyObject {
     public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
         return .init(object: base, action: action(base))
     }
-
+    
     public subscript<A, B>(action: ((Base, A, B) -> Void)?) -> BindingTarget<(A, B)> {
         return makeBindingTarget { base, args in
             let (a, b) = args
