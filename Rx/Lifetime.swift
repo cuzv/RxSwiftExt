@@ -6,7 +6,7 @@ public final class Lifetime {
 
     private init() {
     }
-    
+
     deinit {
         subject.onNext(())
         subject.onCompleted()
@@ -23,11 +23,11 @@ extension Lifetime {
         defer {
             objc_sync_exit(self)
         }
-        
+
         if let result = objc_getAssociatedObject(object, &AssociatedObjectKeys.lifetime) as? Lifetime {
             return result
         }
-        
+
         let result = Lifetime()
         objc_setAssociatedObject(object, &AssociatedObjectKeys.lifetime, result, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         return result

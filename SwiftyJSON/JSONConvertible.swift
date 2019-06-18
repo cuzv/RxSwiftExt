@@ -15,7 +15,7 @@ extension JSON {
     public func map<U>(_ transform: (JSON) -> U) -> U {
         return transform(self)
     }
-    
+
     public func resolved<U: JSONConvertible>() -> U {
         return map(U.init(json:))
     }
@@ -34,7 +34,7 @@ extension Dictionary: JSONConvertible where Value: JSONConvertible, Key == Strin
 }
 
 public struct VoidBox {
-    public func unwrap() -> Void {
+    public func unwrap() {
         return ()
     }
 }
@@ -132,4 +132,3 @@ extension CGFloat: JSONConvertible {
         #endif
     }
 }
-

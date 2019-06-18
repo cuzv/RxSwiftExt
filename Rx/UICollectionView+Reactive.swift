@@ -13,4 +13,3 @@ extension Reactive where Base: UICollectionView {
         }
     }
 }
-

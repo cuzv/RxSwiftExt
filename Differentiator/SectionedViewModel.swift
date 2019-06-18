@@ -5,7 +5,7 @@ public protocol SectionedViewModel {
     associatedtype Section
     associatedtype Item
     typealias ModelOfSection = SectionModel<Section, Item>
-    
+
     func numberOfSections() -> Int
     func numberOfItems(inSection section: Int) -> Int
     func model(forSectionAt section: Int) -> ModelOfSection
@@ -15,7 +15,7 @@ public extension SectionedViewModel {
     public func model(forItemAt indexPath: IndexPath) -> Item {
         return model(forSectionAt: indexPath.section).items[indexPath.item]
     }
-    
+
     public func allModels(_ isIncluded: (Item) -> Bool) -> [Item] {
         return (0 ..< numberOfSections())
             .map({ model(forSectionAt: $0) })

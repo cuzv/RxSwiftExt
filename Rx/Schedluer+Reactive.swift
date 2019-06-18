@@ -6,7 +6,7 @@ public enum RxScheduler {
     case serial(DispatchQoS)
     case concurrent(DispatchQoS)
     case operation(OperationQueue)
-    
+
     public func toImmediateScheduler() -> ImmediateSchedulerType {
         switch self {
         case .main: return MainScheduler.instance
@@ -21,7 +21,7 @@ extension ObservableType {
     public func observeOn(scheduler: RxScheduler) -> Observable<Element> {
         return observeOn(scheduler.toImmediateScheduler())
     }
-    
+
     public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Element> {
         return subscribeOn(scheduler.toImmediateScheduler())
     }

@@ -8,4 +8,3 @@ extension Reactive where Base: UIView {
         return base.rx.tapGesture().when(.recognized)
     }
 }
-

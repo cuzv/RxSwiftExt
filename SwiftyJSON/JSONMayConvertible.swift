@@ -146,16 +146,15 @@ extension CGFloat: JSONMayConvertible {
         #if (arch(i386) || arch(arm))
         if let value = json.float {
             self = CGFloat(value)
-        } else{
+        } else {
             return nil
         }
         #else
         if let value = json.double {
             self = CGFloat(value)
-        } else{
+        } else {
             return nil
         }
         #endif
     }
 }
-

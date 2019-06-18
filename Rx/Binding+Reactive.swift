@@ -9,13 +9,13 @@ extension ObservableType {
             action(target, e)
         }
     }
-    
+
     /// Bind Observable to Closure.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target, Element) -> Void) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: Binder(target, binding: action))
     }
-    
+
     /// Bind Observable to Optional Closure.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target, Element) -> Void)?) -> Disposable {
@@ -24,7 +24,7 @@ extension ObservableType {
         }
         return Disposables.create()
     }
-    
+
     /// Bind Observable to Closure that take no event element.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> Void) -> Disposable {
@@ -33,7 +33,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Optional Closure that take no event element.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: ((Target) -> Void)?) -> Disposable {
@@ -42,7 +42,7 @@ extension ObservableType {
         }
         return Disposables.create()
     }
-    
+
     /// Bind Observable to Closure that take event element as two arguments.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible, A, B>(to target: Target, action: @escaping (Target, A, B) -> Void) -> Disposable where (A, B) == Element {
@@ -52,7 +52,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Optional Closure that take event element as two arguments.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible, A, B>(to target: Target, action: ((Target, A, B) -> Void)?) -> Disposable where (A, B) == Element {
@@ -62,7 +62,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Closure that take event element as three arguments.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(to target: Target, action: @escaping (Target, A, B, C) -> Void) -> Disposable where (A, B, C) == Element {
@@ -82,7 +82,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Method.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> (Element) -> Void) -> Disposable {
@@ -91,7 +91,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Method that take no event element.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, action: @escaping (Target) -> () -> Void) -> Disposable {
@@ -100,7 +100,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Method that take event element as two arguments.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible, A, B>(to target: Target, action: @escaping (Target) -> (A, B) -> Void) -> Disposable where (A, B) == Element {
@@ -110,7 +110,7 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to Method that take event element as three arguments.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(to target: Target, action: @escaping (Target) -> (A, B, C) -> Void) -> Disposable where (A, B, C) == Element {
@@ -120,13 +120,13 @@ extension ObservableType {
         }
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: binder)
     }
-    
+
     /// Bind Observable to KeyPath.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
     }
-    
+
     /// Bind Observable to Optional KeyPath.
     @discardableResult
     public func bind<Target: AnyObject & ReactiveCompatible>(to target: Target, keyPath: ReferenceWritableKeyPath<Target, Element?>) -> Disposable {
@@ -151,12 +151,12 @@ extension ObservableType {
             observer?.on(e)
         }
     }
-    
+
     @discardableResult
     public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(to observer: Observer) -> Disposable where Observer.Element == Element? {
         return map(Optional.init).bind(to: observer)
     }
-    
+
     @discardableResult
     public func bind(to relay: PublishRelay<Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
@@ -170,12 +170,12 @@ extension ObservableType {
             }
         }
     }
-    
+
     @discardableResult
     public func bind(to relay: PublishRelay<Element?>) -> Disposable {
         return map(Optional.init).bind(to: relay)
     }
-    
+
     @discardableResult
     public func bind(to relay: BehaviorRelay<Element>) -> Disposable {
         return observeOn(MainScheduler.instance).takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
@@ -190,7 +190,7 @@ extension ObservableType {
             }
         }
     }
-    
+
     @discardableResult
     public func bind(to relay: BehaviorRelay<Element?>) -> Disposable {
         return map(Optional.init).bind(to: relay)
