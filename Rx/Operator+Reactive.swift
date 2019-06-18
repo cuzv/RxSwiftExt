@@ -16,7 +16,19 @@ extension ObservableType {
     public func map<Revision>(_ keyPath: KeyPath<Element, Revision>) -> Observable<Revision> {
         return map { $0[keyPath: keyPath] }
     }
+
+    public func compactMap<Revision>(_ keyPath: KeyPath<Element, Revision?>) -> Observable<Revision> {
+        return compactMap { $0[keyPath: keyPath] }
+    }
     
+    public func `as`<Revision>(_ transformedType: Revision.Type) -> Observable<Revision?> {
+        return map({ $0 as? Revision })
+    }
+
+    public func compactAs<Revision>(_ transformedType: Revision.Type) -> Observable<Revision> {
+        return compactMap({ $0 as? Revision })
+    }
+
     public func filter(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
         return filter { $0[keyPath: keyPath] }
     }
@@ -53,5 +65,25 @@ extension ObservableType where Element == Bool {
     
     public func ignoreFalse() -> Observable<Bool> {
         return filter({ $0 })
+    }
+}
+
+extension ObservableType where Element: EventConvertible {
+    public var elements: Observable<Element.Element> {
+        return dematerialize()
+    }
+    
+    public var errors: Observable<Swift.Error> {
+        return compactMap(\.event.error)
+    }
+}
+
+extension ObservableType where Element: ResultConvertible {
+    public var elements: Observable<Element.Success> {
+        return compactMap(\.result.success)
+    }
+    
+    public var errors: Observable<Element.Failure> {
+        return compactMap(\.result.failure)
     }
 }
