@@ -1,11 +1,11 @@
 import Foundation
 import SwiftyJSON
 
-public protocol JSONConvertible {
+public protocol JSONInitializable {
     init(json: JSON)
 }
 
-extension JSON: JSONConvertible {
+extension JSON: JSONInitializable {
     public init(json: JSON) {
         self = json
     }
@@ -16,18 +16,18 @@ extension JSON {
         return transform(self)
     }
 
-    public func resolved<U: JSONConvertible>() -> U {
+    public func resolved<U: JSONInitializable>() -> U {
         return map(U.init(json:))
     }
 }
 
-extension Array: JSONConvertible where Element: JSONConvertible {
+extension Array: JSONInitializable where Element: JSONInitializable {
     public init(json: JSON) {
         self = json.arrayValue.map(Element.init(json:))
     }
 }
 
-extension Dictionary: JSONConvertible where Value: JSONConvertible, Key == String {
+extension Dictionary: JSONInitializable where Value: JSONInitializable, Key == String {
     public init(json: JSON) {
         self = json.dictionaryValue.mapValues(Value.init(json:))
     }
@@ -39,91 +39,91 @@ public struct VoidBox {
     }
 }
 
-extension VoidBox: JSONConvertible {
+extension VoidBox: JSONInitializable {
     public init(json: JSON) {
         self = VoidBox()
     }
 }
 
-extension String: JSONConvertible {
+extension String: JSONInitializable {
     public init(json: JSON) {
         self = json.stringValue
     }
 }
 
-extension Bool: JSONConvertible {
+extension Bool: JSONInitializable {
     public init(json: JSON) {
         self = json.boolValue
     }
 }
 
-extension Int: JSONConvertible {
+extension Int: JSONInitializable {
     public init(json: JSON) {
         self = json.intValue
     }
 }
 
-extension Double: JSONConvertible {
+extension Double: JSONInitializable {
     public init(json: JSON) {
         self = json.doubleValue
     }
 }
 
-extension Float: JSONConvertible {
+extension Float: JSONInitializable {
     public init(json: JSON) {
         self = json.floatValue
     }
 }
 
-extension Int8: JSONConvertible {
+extension Int8: JSONInitializable {
     public init(json: JSON) {
         self = json.int8Value
     }
 }
 
-extension Int16: JSONConvertible {
+extension Int16: JSONInitializable {
     public init(json: JSON) {
         self = json.int16Value
     }
 }
 
-extension Int32: JSONConvertible {
+extension Int32: JSONInitializable {
     public init(json: JSON) {
         self = json.int32Value
     }
 }
 
-extension Int64: JSONConvertible {
+extension Int64: JSONInitializable {
     public init(json: JSON) {
         self = json.int64Value
     }
 }
 
-extension CGPoint: JSONConvertible {
+extension CGPoint: JSONInitializable {
     public init(json: JSON) {
         self = json.numberValue.cgPointValue
     }
 }
 
-extension CGVector: JSONConvertible {
+extension CGVector: JSONInitializable {
     public init(json: JSON) {
         self = json.numberValue.cgVectorValue
     }
 }
 
-extension CGSize: JSONConvertible {
+extension CGSize: JSONInitializable {
     public init(json: JSON) {
         self = json.numberValue.cgSizeValue
     }
 }
 
-extension CGRect: JSONConvertible {
+extension CGRect: JSONInitializable {
     public init(json: JSON) {
         self = json.numberValue.cgRectValue
     }
 }
 
-extension CGFloat: JSONConvertible {
+extension CGFloat: JSONInitializable {
     public init(json: JSON) {
         #if (arch(i386) || arch(arm))
         self = CGFloat(json.floatValue)

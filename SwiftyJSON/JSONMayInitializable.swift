@@ -1,17 +1,17 @@
 import Foundation
 import SwiftyJSON
 
-public protocol JSONMayConvertible {
+public protocol JSONMayInitializable {
     init?(failable json: JSON)
 }
 
 extension JSON {
-    public func resolved<U: JSONMayConvertible>() -> U? {
+    public func resolved<U: JSONMayInitializable>() -> U? {
         return map(U.init(failable:))
     }
 }
 
-extension String: JSONMayConvertible {
+extension String: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.string {
             self = value
@@ -21,7 +21,7 @@ extension String: JSONMayConvertible {
     }
 }
 
-extension Bool: JSONMayConvertible {
+extension Bool: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.bool {
             self = value
@@ -31,7 +31,7 @@ extension Bool: JSONMayConvertible {
     }
 }
 
-extension Int: JSONMayConvertible {
+extension Int: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.int {
             self = value
@@ -41,7 +41,7 @@ extension Int: JSONMayConvertible {
     }
 }
 
-extension Double: JSONMayConvertible {
+extension Double: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.double {
             self = value
@@ -51,7 +51,7 @@ extension Double: JSONMayConvertible {
     }
 }
 
-extension Float: JSONMayConvertible {
+extension Float: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.float {
             self = value
@@ -61,7 +61,7 @@ extension Float: JSONMayConvertible {
     }
 }
 
-extension Int8: JSONMayConvertible {
+extension Int8: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.int8 {
             self = value
@@ -71,7 +71,7 @@ extension Int8: JSONMayConvertible {
     }
 }
 
-extension Int16: JSONMayConvertible {
+extension Int16: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.int16 {
             self = value
@@ -81,7 +81,7 @@ extension Int16: JSONMayConvertible {
     }
 }
 
-extension Int32: JSONMayConvertible {
+extension Int32: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.int32 {
             self = value
@@ -91,7 +91,7 @@ extension Int32: JSONMayConvertible {
     }
 }
 
-extension Int64: JSONMayConvertible {
+extension Int64: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.int64 {
             self = value
@@ -101,7 +101,7 @@ extension Int64: JSONMayConvertible {
     }
 }
 
-extension CGPoint: JSONMayConvertible {
+extension CGPoint: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.number?.cgPointValue {
             self = value
@@ -111,7 +111,7 @@ extension CGPoint: JSONMayConvertible {
     }
 }
 
-extension CGVector: JSONMayConvertible {
+extension CGVector: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.number?.cgVectorValue {
             self = value
@@ -121,7 +121,7 @@ extension CGVector: JSONMayConvertible {
     }
 }
 
-extension CGSize: JSONMayConvertible {
+extension CGSize: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.number?.cgSizeValue {
             self = value
@@ -131,7 +131,7 @@ extension CGSize: JSONMayConvertible {
     }
 }
 
-extension CGRect: JSONMayConvertible {
+extension CGRect: JSONMayInitializable {
     public init?(failable json: JSON) {
         if let value = json.number?.cgRectValue {
             self = value
@@ -141,7 +141,7 @@ extension CGRect: JSONMayConvertible {
     }
 }
 
-extension CGFloat: JSONMayConvertible {
+extension CGFloat: JSONMayInitializable {
     public init?(failable json: JSON) {
         #if (arch(i386) || arch(arm))
         if let value = json.float {
