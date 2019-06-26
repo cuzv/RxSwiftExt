@@ -42,15 +42,9 @@ extension ObservableType {
     }
 }
 
-extension ObservableType where Element == String {
-    public func ignoreEmpty() -> Observable<String> {
-        return map(Optional.init).ignoreEmpty()
-    }
-}
-
 extension ObservableType where Element == String? {
     public func ignoreEmpty() -> Observable<String> {
-        return ignoreNil().filterReversed(\.isEmpty)
+        return ignoreNil().ignoreEmpty()
     }
 }
 
@@ -65,6 +59,12 @@ extension ObservableType where Element == Bool {
 
     public func ignoreFalse() -> Observable<Bool> {
         return filter({ $0 })
+    }
+}
+
+extension ObservableType where Element: Collection {
+    public func ignoreEmpty() -> Observable<Element> {
+        return filterReversed(\.isEmpty)
     }
 }
 
