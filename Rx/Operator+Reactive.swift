@@ -69,21 +69,21 @@ extension ObservableType where Element == Bool {
 }
 
 extension ObservableType where Element: EventConvertible {
-    public var elements: Observable<Element.Element> {
-        return dematerialize()
+    public func elements() -> Observable<Element.Element> {
+        return compactMap(\.event.element)
     }
 
-    public var errors: Observable<Swift.Error> {
+    public func errors() -> Observable<Swift.Error> {
         return compactMap(\.event.error)
     }
 }
 
 extension ObservableType where Element: ResultConvertible {
-    public var elements: Observable<Element.Success> {
+    public func elements() -> Observable<Element.Success> {
         return compactMap(\.result.success)
     }
 
-    public var errors: Observable<Element.Failure> {
+    public func errors() -> Observable<Element.Failure> {
         return compactMap(\.result.failure)
     }
 }
