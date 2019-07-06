@@ -74,14 +74,6 @@ extension ObservableType where Element == Bool {
     public func not() -> Observable<Bool> {
         return map(!)
     }
-
-    public func takeFalse() -> Observable<Bool> {
-        return filter(!)
-    }
-
-    public func takeTrue() -> Observable<Bool> {
-        return filter { $0 }
-    }
 }
 
 extension ObservableType where Element: Collection {
