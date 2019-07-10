@@ -1,6 +1,8 @@
 platform :ios, '9.0'
 inhibit_all_warnings!
 use_frameworks!
+install! 'cocoapods', generate_multiple_pod_projects: true
+
 
 target 'Traits' do
     pod 'SwiftyJSON'
