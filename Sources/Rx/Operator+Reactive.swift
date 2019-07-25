@@ -5,8 +5,8 @@ extension ObservableType {
         return replaceWith(())
     }
 
-    public func replaceWith<NewElement>(_ element: NewElement) -> Observable<NewElement> {
-        return map { _ in element }
+    public func replaceWith<NewElement>(_ element: @escaping @autoclosure () -> NewElement) -> Observable<NewElement> {
+        return map { _ in element() }
     }
 
     public func unwrap<Wrapped>() -> Observable<Wrapped> where Element == Wrapped? {

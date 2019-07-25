@@ -464,6 +464,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS -D DEBUG -D TRACE_RESOURCES";
 				PRODUCT_BUNDLE_IDENTIFIER = bar.foo.Traits;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
