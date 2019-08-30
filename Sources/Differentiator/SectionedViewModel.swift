@@ -18,19 +18,23 @@ extension SectionedViewModel {
 
     public func allModels(_ isIncluded: (Item) -> Bool) -> [Item] {
         return (0 ..< numberOfSections())
-            .map({ model(forSectionAt: $0) })
-            .flatMap({ $0.items })
+            .lazy
+            .flatMap({ self.model(forSectionAt: $0).items })
             .filter(isIncluded)
     }
 }
 
 extension SectionedViewModel where Item: Equatable {
     public func indexPath(of model: ModelOfSection.Item) -> IndexPath? {
-        for section in 0 ..< numberOfSections() {
-            if let item = self.model(forSectionAt: section).items.firstIndex(where: { $0 == model }) {
-                return IndexPath(item: item, section: section)
+        return (0 ..< numberOfSections())
+            .lazy
+            .compactMap { section -> IndexPath? in
+                self.model(forSectionAt: section)
+                    .items
+                    .lazy
+                    .firstIndex(where: { $0 == model })
+                    .flatMap({ IndexPath(item: $0, section: section) })
             }
-        }
-        return nil
+            .first
     }
 }
