@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 import SwiftyJSON
 
 public protocol JSONInitializable {
@@ -101,25 +102,19 @@ extension Int64: JSONInitializable {
 
 extension CGPoint: JSONInitializable {
     public init(json: JSON) {
-        self = json.numberValue.cgPointValue
+        self = .init(x: CGFloat(json: json["x"]), y: CGFloat(json: json["y"]))
     }
 }
 
 extension CGVector: JSONInitializable {
     public init(json: JSON) {
-        self = json.numberValue.cgVectorValue
+        self = .init(dx: CGFloat(json: json["dx"]), dy: CGFloat(json: json["dy"]))
     }
 }
 
 extension CGSize: JSONInitializable {
     public init(json: JSON) {
-        self = json.numberValue.cgSizeValue
-    }
-}
-
-extension CGRect: JSONInitializable {
-    public init(json: JSON) {
-        self = json.numberValue.cgRectValue
+        self = .init(width: CGFloat(json: json["width"]), height: CGFloat(json: json["height"]))
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import CoreGraphics
 import SwiftyJSON
 
 public protocol JSONMayInitializable {
@@ -103,8 +104,8 @@ extension Int64: JSONMayInitializable {
 
 extension CGPoint: JSONMayInitializable {
     public init?(failable json: JSON) {
-        if let value = json.number?.cgPointValue {
-            self = value
+        if let x = CGFloat(failable: json["x"]), let y = CGFloat(failable: json["y"]) {
+            self = .init(x: x, y: y)
         } else {
             return nil
         }
@@ -113,8 +114,8 @@ extension CGPoint: JSONMayInitializable {
 
 extension CGVector: JSONMayInitializable {
     public init?(failable json: JSON) {
-        if let value = json.number?.cgVectorValue {
-            self = value
+        if let dx = CGFloat(failable: json["dx"]), let dy = CGFloat(failable: json["dy"]) {
+            self = .init(dx: dx, dy: dy)
         } else {
             return nil
         }
@@ -123,18 +124,8 @@ extension CGVector: JSONMayInitializable {
 
 extension CGSize: JSONMayInitializable {
     public init?(failable json: JSON) {
-        if let value = json.number?.cgSizeValue {
-            self = value
-        } else {
-            return nil
-        }
-    }
-}
-
-extension CGRect: JSONMayInitializable {
-    public init?(failable json: JSON) {
-        if let value = json.number?.cgRectValue {
-            self = value
+        if let width = CGFloat(failable: json["width"]), let height = CGFloat(failable: json["height"]) {
+            self = .init(width: width, height: height)
         } else {
             return nil
         }
