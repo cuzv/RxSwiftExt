@@ -1,7 +1,6 @@
 import XCTest
 @testable import RxSwift
 @testable import RxRelay
-@testable import RxTraits
 
 final class spmTests: XCTestCase {
     func testExample() {

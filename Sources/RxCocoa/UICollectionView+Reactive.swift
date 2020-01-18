@@ -1,3 +1,4 @@
+#if os(iOS) || os(tvOS)
 import UIKit
 import RxSwift
 import RxCocoa
@@ -13,3 +14,4 @@ extension Reactive where Base: UICollectionView {
         }
     }
 }
+#endif

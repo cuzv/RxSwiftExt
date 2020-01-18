@@ -96,15 +96,17 @@ extension ObservableType where Element: EventConvertible {
     }
 }
 
-//extension ObservableType where Element: ResultConvertible {
-//    public func elements() -> Observable<Element.Success> {
-//        return compactMap(\.result.success)
-//    }
-//
-//    public func errors() -> Observable<Element.Failure> {
-//        return compactMap(\.result.failure)
-//    }
-//}
+import ResultConvertible
+
+extension ObservableType where Element: ResultConvertible {
+    public func elements() -> Observable<Element.Success> {
+        return compactMap(\.result.success)
+    }
+
+    public func errors() -> Observable<Element.Failure> {
+        return compactMap(\.result.failure)
+    }
+}
 
 extension Observable {
     public func merge(_ others: Observable<Element>...) -> Observable<Element> {
