@@ -44,6 +44,19 @@ extension ObservableType {
     public func catchErrorJustComplete() -> Observable<Element> {
         return catchError { _ in .empty() }
     }
+
+    public func mapToResult() -> Observable<Swift.Result<Element, Error>> {
+        materialize().compactMap { event -> Swift.Result<Element, Error>? in
+            switch event {
+            case let .next(element):
+                return .success(element)
+            case let .error(error):
+                return .failure(error)
+            case .completed:
+                return nil
+            }
+        }
+    }
 }
 
 extension ObservableType where Element: Equatable {
@@ -105,6 +118,26 @@ extension ObservableType where Element: ResultConvertible {
 
     public func errors() -> Observable<Element.Failure> {
         return compactMap(\.result.failure)
+    }
+
+    public func unwrap() -> Observable<Element.Success> {
+        .create { observer in
+            self.subscribe { event in
+                switch event {
+                case let .next(element):
+                    switch element.result {
+                    case let .success(value):
+                        observer.onNext(value)
+                    case let .failure(error):
+                        observer.onError(error)
+                    }
+                case let .error(error):
+                    observer.onError(error)
+                case .completed:
+                    observer.onCompleted()
+                }
+            }
+        }
     }
 }
 

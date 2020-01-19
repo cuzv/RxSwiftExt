@@ -10,7 +10,7 @@ import Foundation
 import RxSwift
 import RxCocoa
 
-private struct ActivityToken<E> : ObservableConvertibleType, Disposable {
+private struct ActivityToken<E>: ObservableConvertibleType, Disposable {
     private let _source: Observable<E>
     private let _dispose: Cancelable
 
