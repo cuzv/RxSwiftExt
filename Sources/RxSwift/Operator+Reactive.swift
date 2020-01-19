@@ -46,15 +46,21 @@ extension ObservableType {
     }
 
     public func mapToResult() -> Observable<Swift.Result<Element, Error>> {
-        materialize().compactMap { event -> Swift.Result<Element, Error>? in
-            switch event {
-            case let .next(element):
-                return .success(element)
-            case let .error(error):
-                return .failure(error)
-            case .completed:
-                return nil
-            }
+        materialize().compactMap(Swift.Result.init(event:))
+    }
+}
+
+extension Swift.Result {
+    init?(event: Event<Success>) {
+        switch event {
+        case let .next(element):
+            self = .success(element)
+        case let .error(error) where error is Failure:
+            self = .failure(error as! Failure)
+        case .error:
+            return nil
+        case .completed:
+            return nil
         }
     }
 }
