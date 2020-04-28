@@ -2,43 +2,39 @@ import RxSwift
 import RxCocoa
 
 extension Reactive where Base: AnyObject {
-    public func makeBinder(_ action: @escaping (Base) -> () -> Void) -> Binder<Void> {
-        return Binder(base) { target, _ in
+    public subscript(_ action: @escaping (Base) -> () -> Void) -> Binder<Void> {
+        Binder(base) { target, _ in
             action(target)()
         }
     }
 
-    public subscript(_ action: @escaping (Base) -> () -> Void) -> Binder<Void> {
-        return makeBinder(action)
-    }
-
-    public func makeBinder<Value>(_ action: @escaping (Base) -> (Value) -> Void) -> Binder<Value> {
-        return Binder(base) { target, value in
+    public subscript<Value>(_ action: @escaping (Base) -> (Value) -> Void) -> Binder<Value> {
+        Binder(base) { target, value in
             action(target)(value)
         }
     }
 
-    public subscript<Value>(_ action: @escaping (Base) -> (Value) -> Void) -> Binder<Value> {
-        return makeBinder(action)
-    }
-
-    public func makeBinder<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> Void) -> Binder<(V1, V2)> {
-        return Binder(base) { target, value in
-            action(target)(value.0, value.1)
+    public subscript<A, B>(_ action: @escaping (Base) -> (A, B) -> Void) -> Binder<(A, B)> {
+        Binder(base) { target, args in
+            action(target)(args.0, args.1)
         }
     }
 
-    public subscript<V1, V2>(_ action: @escaping (Base) -> (V1, V2) -> Void) -> Binder<(V1, V2)> {
-        return makeBinder(action)
-    }
-
-    public func makeBinder<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> Void) -> Binder<(V1, V2, V3)> {
-        return Binder(base) { target, value in
-            action(target)(value.0, value.1, value.2)
+    public subscript<A, B, C>(_ action: @escaping (Base) -> (A, B, C) -> Void) -> Binder<(A, B, C)> {
+        Binder(base) { target, args in
+            action(target)(args.0, args.1, args.2)
         }
     }
 
-    public subscript<V1, V2, V3>(_ action: @escaping (Base) -> (V1, V2, V3) -> Void) -> Binder<(V1, V2, V3)> {
-        return makeBinder(action)
+    public subscript<A, B, C, D>(_ action: @escaping (Base) -> (A, B, C, D) -> Void) -> Binder<(A, B, C, D)> {
+        Binder(base) { target, args in
+            action(target)(args.0, args.1, args.2, args.3)
+        }
+    }
+
+    public subscript<A, B, C, D, E>(_ action: @escaping (Base) -> (A, B, C, D, E) -> Void) -> Binder<(A, B, C, D, E)> {
+        Binder(base) { target, args in
+            action(target)(args.0, args.1, args.2, args.3, args.4)
+        }
     }
 }

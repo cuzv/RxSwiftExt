@@ -14,7 +14,7 @@ public struct BindingTarget<Value>: BindingTargetProvider {
     public let action: (Value) -> Void
 
     public var bindingTarget: BindingTarget<Value> {
-        return self
+        self
     }
 
     public init(lifetime: Lifetime, action: @escaping (Value) -> Void) {
@@ -61,7 +61,7 @@ extension BindingTargetProvider {
     public static func =>
         <Source: ObservableType>(source: Source, provider: Self) -> Disposable
         where Value == Source.Element? {
-        return source.map(Optional.init) => provider
+        source.map(Optional.init) => provider
     }
 }
 
@@ -81,15 +81,15 @@ extension BindingTargetProvider where Value == Void {
 
 extension Reactive where Base: AnyObject {
     private func makeBindingTarget<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
-        return .init(object: base, keyPath: keyPath)
+        .init(object: base, keyPath: keyPath)
     }
 
     public subscript<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
-        return .init(object: base, keyPath: keyPath)
+        .init(object: base, keyPath: keyPath)
     }
 
     public subscript<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
-        return .init(object: base) { [weak base = base] value in
+        .init(object: base) { [weak base = base] value in
             if let base = base {
                 action(base)(value)
             }
@@ -97,7 +97,7 @@ extension Reactive where Base: AnyObject {
     }
 
     public func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
-        return .init(object: base) { [weak base = base] value in
+        .init(object: base) { [weak base = base] value in
             if let base = base {
                 action?(base, value)
             }
@@ -105,15 +105,15 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
-        return makeBindingTarget(action: action)
+        makeBindingTarget(action: action)
     }
 
     public subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
-        return makeBindingTarget(action: action)
+        makeBindingTarget(action: action)
     }
 
     public subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
-        return .init(object: base) { [weak base = base] _ in
+        .init(object: base) { [weak base = base] _ in
             if let base = base {
                 action(base)()
             }
@@ -121,17 +121,17 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript(action: ((Base) -> Void)?) -> BindingTarget<Void> {
-        return makeBindingTarget { base, _ in
+        makeBindingTarget { base, _ in
             action?(base)
         }
     }
 
     public subscript(action: @escaping (Base) -> Void) -> BindingTarget<Void> {
-        return self[Optional(action)]
+        self[Optional(action)]
     }
 
     public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
-        return .init(object: base) { [weak base = base] (a, b) in
+        .init(object: base) { [weak base = base] (a, b) in
             if let base = base {
                 action(base)(a, b)
             }
@@ -139,18 +139,18 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript<A, B>(action: ((Base, A, B) -> Void)?) -> BindingTarget<(A, B)> {
-        return makeBindingTarget { base, args in
+        makeBindingTarget { base, args in
             let (a, b) = args
             action?(base, a, b)
         }
     }
 
     public subscript<A, B>(action: @escaping (Base, A, B) -> Void) -> BindingTarget<(A, B)> {
-        return self[Optional(action)]
+        self[Optional(action)]
     }
 
     public subscript<A, B, C>(action: @escaping (Base) -> (A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
-        return .init(object: base) { [weak base = base] (a, b, c) in
+        .init(object: base) { [weak base = base] (a, b, c) in
             if let base = base {
                 action(base)(a, b, c)
             }
@@ -158,14 +158,14 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript<A, B, C>(action: ((Base, A, B, C) -> Void)?) -> BindingTarget<(A, B, C)> {
-        return makeBindingTarget { base, args in
+        makeBindingTarget { base, args in
             let (a, b, c) = args
             action?(base, a, b, c)
         }
     }
 
     public subscript<A, B, C>(action: @escaping (Base, A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
-        return self[Optional(action)]
+        self[Optional(action)]
     }
 }
 
