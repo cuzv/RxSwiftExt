@@ -11,7 +11,7 @@ func materialize<In, Out>(of function: @escaping (In) -> Observable<Out>) -> (In
 
 // MARK: - Result
 
-func materialize<In, Out>(of function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
+func result<In, Out>(of function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
     return {
         function($0).mapToResult()
     }
