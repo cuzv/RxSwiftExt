@@ -6,7 +6,7 @@ extension ObservableType {
     }
 
     public func void() -> Observable<Void> {
-        replace(())
+        succeeding(())
     }
 
     public func succeeding<Successor>(_ element: @escaping @autoclosure () -> Successor) -> Observable<Successor> {
