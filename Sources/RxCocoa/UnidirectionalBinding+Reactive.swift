@@ -131,7 +131,7 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
-        .init(object: base) { [weak base = base] (a, b) in
+        .init(object: base) { [weak base = base] a, b in
             if let base = base {
                 action(base)(a, b)
             }
@@ -150,7 +150,7 @@ extension Reactive where Base: AnyObject {
     }
 
     public subscript<A, B, C>(action: @escaping (Base) -> (A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
-        .init(object: base) { [weak base = base] (a, b, c) in
+        .init(object: base) { [weak base = base] a, b, c in
             if let base = base {
                 action(base)(a, b, c)
             }
