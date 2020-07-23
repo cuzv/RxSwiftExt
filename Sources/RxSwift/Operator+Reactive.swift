@@ -1,11 +1,15 @@
 import RxSwift
 
 extension ObservableType {
-    public func void() -> Observable<Void> {
-        replaceWith(())
+    public func optional() -> Observable<Element?> {
+        map(Optional.init)
     }
 
-    public func replaceWith<NewElement>(_ element: @escaping @autoclosure () -> NewElement) -> Observable<NewElement> {
+    public func void() -> Observable<Void> {
+        replace(())
+    }
+
+    public func succeeding<Successor>(_ element: @escaping @autoclosure () -> Successor) -> Observable<Successor> {
         map { _ in element() }
     }
 
@@ -27,6 +31,26 @@ extension ObservableType {
 
     public func of<Transformed>(_ transformedType: Transformed.Type) -> Observable<Transformed> {
         compactMap { $0 as? Transformed }
+    }
+
+    public func with<Inserted>(_ element: @escaping @autoclosure () -> Inserted) -> Observable<(Element, Inserted)> {
+        map { ($0, element()) }
+    }
+
+    public func with<A, B, Inserted>(_ element: @escaping @autoclosure () -> Inserted) -> Observable<(A, B, Inserted)> where Element == (A, B) {
+        map { ($0.0, $0.1, element()) }
+    }
+
+    public func reverse<A, B>() -> Observable<(B, A)> where Element == (A, B) {
+        map { ($0.1, $0.0) }
+    }
+
+    public func reverse<A, B, C>() -> Observable<(C, B, A)> where Element == (A, B, C) {
+        map { ($0.2, $0.1, $0.0) }
+    }
+
+    public func squeeze<A, B, C>() -> Observable<(A, B, C)> where Element == (((A, B), C)) {
+        map { ($0.0, $0.1, $1) }
     }
 
     public func filter(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
@@ -66,12 +90,20 @@ extension Swift.Result {
 }
 
 extension ObservableType where Element: Equatable {
+    public func filter(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
+        filter { valueToFilter() == $0 }
+    }
+
     public func filter(_ valuesToFilter: Element...) -> Observable<Element> {
         filter { valuesToFilter.contains($0) }
     }
 
-    public func filter<Sequence: Swift.Sequence>(_ valuesToFilter: Sequence) -> Observable<Element> where Sequence.Element == Element {
-        filter { valuesToFilter.contains($0) }
+    public func filter<Sequence: Swift.Sequence>(_ valuesToFilter: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
+        filter { valuesToFilter().contains($0) }
+    }
+
+    public func ignore(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
+        filter { valueToFilter() != $0 }
     }
 
     public func ignore(_ valuesToIgnore: Element...) -> Observable<Element> {
@@ -80,6 +112,10 @@ extension ObservableType where Element: Equatable {
 
     public func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: Sequence) -> Observable<Element> where Sequence.Element == Element {
         filter { !valuesToIgnore.contains($0) }
+    }
+
+    public func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
+        filter { !valuesToIgnore().contains($0) }
     }
 }
 
@@ -90,7 +126,7 @@ extension ObservableType where Element == String? {
 }
 
 extension ObservableType where Element == Bool {
-    public func not() -> Observable<Bool> {
+    public func toggle() -> Observable<Bool> {
         map(!)
     }
 }
@@ -112,6 +148,10 @@ extension ObservableType where Element: EventConvertible {
 
     public func errors() -> Observable<Swift.Error> {
         compactMap(\.event.error)
+    }
+
+    public func terminal() -> Observable<Bool> {
+        map(\.event.isStopEvent)
     }
 }
 

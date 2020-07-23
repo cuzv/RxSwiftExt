@@ -3,7 +3,7 @@ import RxSwift
 
 // MARK: - Materialize
 
-func materialize<In, Out>(of function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Event<Out>> {
+func materialize<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Event<Out>> {
     return {
         function($0).materialize()
     }
@@ -11,7 +11,7 @@ func materialize<In, Out>(of function: @escaping (In) -> Observable<Out>) -> (In
 
 // MARK: - Result
 
-func mapToResult<In, Out>(from function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
+func mapToResult<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
     return {
         function($0).mapToResult()
     }
