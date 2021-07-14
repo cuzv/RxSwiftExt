@@ -1,18 +1,20 @@
 import Foundation
 import RxSwift
 
-// MARK: - Materialize
+public enum RxOperators {
+    // MARK: - Materialize
 
-func materialize<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Event<Out>> {
-    return {
-        function($0).materialize()
+    public static func materialize<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Event<Out>> {
+        return {
+            function($0).materialize()
+        }
     }
-}
 
-// MARK: - Result
+    // MARK: - Result
 
-func mapToResult<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
-    return {
-        function($0).mapToResult()
+    public static func mapToResult<In, Out>(_ function: @escaping (In) -> Observable<Out>) -> (In) -> Observable<Result<Out, Error>> {
+        return {
+            function($0).mapToResult()
+        }
     }
 }

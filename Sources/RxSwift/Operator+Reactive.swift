@@ -66,7 +66,7 @@ extension ObservableType {
     }
 
     public func catchErrorJustComplete() -> Observable<Element> {
-        catchError { _ in .empty() }
+        `catch` { _ in .empty() }
     }
 
     public func mapToResult() -> Observable<Swift.Result<Element, Error>> {

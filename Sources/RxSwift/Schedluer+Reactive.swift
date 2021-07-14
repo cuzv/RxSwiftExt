@@ -19,10 +19,10 @@ public enum RxScheduler {
 
 extension ObservableType {
     public func observeOn(scheduler: RxScheduler) -> Observable<Element> {
-        observeOn(scheduler.toImmediateScheduler())
+        observe(on: scheduler.toImmediateScheduler())
     }
 
     public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Element> {
-        subscribeOn(scheduler.toImmediateScheduler())
+        subscribe(on: scheduler.toImmediateScheduler())
     }
 }

@@ -3,7 +3,7 @@ import XCTest
 @testable import RxRelay
 @testable import RxSwiftExt
 
-final class spmTests: XCTestCase {
+final class SpmTests: XCTestCase {
     func testExample() {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
@@ -14,6 +14,10 @@ final class spmTests: XCTestCase {
         
         relay.accept(false)
         XCTAssertEqual(relay.value, false)
+    }
+
+    func request(in: String) -> Observable<Int> {
+        return .just(1)
     }
 
     static var allTests = [

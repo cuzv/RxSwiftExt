@@ -36,6 +36,6 @@ extension Lifetime {
 
 extension ObservableType {
     public func takeDuring(_ lifetime: Lifetime) -> Observable<Element> {
-        takeUntil(lifetime.subject)
+        take(until: lifetime.subject)
     }
 }

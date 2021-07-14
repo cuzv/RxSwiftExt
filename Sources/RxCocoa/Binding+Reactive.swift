@@ -40,7 +40,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target) -> Void
     ) -> Disposable {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder(target) { target, _ in
                 action(target)
             }
@@ -65,7 +65,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target, A, B) -> Void
     ) -> Disposable where (A, B) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder(target) { target, args in
                 action(target, args.0, args.1)
             }
@@ -78,7 +78,7 @@ extension ObservableType {
         to target: Target,
         action: ((Target, A, B) -> Void)?
     ) -> Disposable where (A, B) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder<Element>(target) { target, args in
                 action?(target, args.0, args.1)
             }
@@ -91,7 +91,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target, A, B, C) -> Void
     ) -> Disposable where (A, B, C) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder<Element>(target) { target, args in
                 action(target, args.0, args.1, args.2)
             }
@@ -104,7 +104,7 @@ extension ObservableType {
         to target: Target,
         action: ((Target, A, B, C) -> Void)?
     ) -> Disposable where (A, B, C) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder<Element>(target) { target, args in
                 action?(target, args.0, args.1, args.2)
             }
@@ -117,7 +117,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target) -> (Element) -> Void
     ) -> Disposable {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder(target) { target, value in
                 action(target)(value)
             }
@@ -130,7 +130,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target) -> () -> Void
     ) -> Disposable {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder(target) { target, _ in
                 action(target)()
             }
@@ -143,7 +143,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target) -> (A, B) -> Void
     ) -> Disposable where (A, B) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder<Element>(target) { target, args in
                 action(target)(args.0, args.1)
             }
@@ -156,7 +156,7 @@ extension ObservableType {
         to target: Target,
         action: @escaping (Target) -> (A, B, C) -> Void
     ) -> Disposable where (A, B, C) == Element {
-        takeUntil(target.rx.deallocated).bind(
+        take(until: target.rx.deallocated).bind(
             to: Binder(target) { target, args in
                 action(target)(args.0, args.1, args.2)
             }
@@ -169,7 +169,11 @@ extension ObservableType {
         to target: Target,
         keyPath: ReferenceWritableKeyPath<Target, Element>
     ) -> Disposable {
-        takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
+        take(until: target.rx.deallocated).bind(
+            to: Binder(target) { target, value in
+                target[keyPath: keyPath] = value
+            }
+        )
     }
 
     /// Bind Observable to Optional KeyPath.
@@ -178,7 +182,11 @@ extension ObservableType {
         to target: Target,
         keyPath: ReferenceWritableKeyPath<Target, Element?>
     ) -> Disposable {
-        map(Optional.init).takeUntil(target.rx.deallocated).bind(to: target.rx[keyPath])
+        map(Optional.init).take(until: target.rx.deallocated).bind(
+            to: Binder(target) { target, value in
+                target[keyPath: keyPath] = value
+            }
+        )
     }
 }
 
@@ -197,7 +205,7 @@ extension ObservableType {
     public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(
         to observer: Observer
     ) -> Disposable where Observer.Element == Element {
-        takeUntil(observer.rx.deallocated).subscribe { [weak observer] e in
+        take(until: observer.rx.deallocated).subscribe { [weak observer] e in
             observer?.on(e)
         }
     }
@@ -211,7 +219,7 @@ extension ObservableType {
 
     @discardableResult
     public func bind(to relay: PublishRelay<Element>) -> Disposable {
-        takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
+        take(until: relay.rx.deallocated).subscribe { [weak relay] e in
             switch e {
             case let .next(element):
                 relay?.accept(element)
@@ -230,7 +238,7 @@ extension ObservableType {
 
     @discardableResult
     public func bind(to relay: BehaviorRelay<Element>) -> Disposable {
-        takeUntil(relay.rx.deallocated).subscribe { [weak relay] e in
+        take(until: relay.rx.deallocated).subscribe { [weak relay] e in
             switch e {
             case let .next(element):
                 relay?.accept(element)
