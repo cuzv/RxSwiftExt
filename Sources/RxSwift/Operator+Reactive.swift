@@ -5,40 +5,60 @@ extension ObservableType {
         map(Optional.init)
     }
 
-    public func void() -> Observable<Void> {
-        succeeding(())
+    public func eraseType() -> Observable<Void> {
+        map { _ in () }
     }
 
-    public func succeeding<Successor>(_ element: @escaping @autoclosure () -> Successor) -> Observable<Successor> {
-        map { _ in element() }
+    public func with<Inserted>(
+        _ inserted: Inserted
+    ) -> Observable<(Element, Inserted)> {
+        map({ ($0, inserted) })
+    }
+
+    public func withDeferred<Inserted>(
+        _ inserted: @escaping @autoclosure () -> Inserted
+    ) -> Observable<(Element, Inserted)> {
+        map({ ($0, inserted()) })
+    }
+
+    public func succeeding<Successor>(
+        _ successor: Successor
+    ) -> Observable<Successor> {
+        map { _ in successor }
+    }
+
+    public func succeedingDeferred<Successor>(
+        _ successor: @escaping @autoclosure () -> Successor
+    ) -> Observable<Successor> {
+        map { _ in successor() }
     }
 
     public func unwrap<Wrapped>() -> Observable<Wrapped> where Element == Wrapped? {
         flatMap(Observable.from(optional:))
     }
 
-    public func map<Result>(_ keyPath: KeyPath<Element, Result>) -> Observable<Result> {
+    public func map<Result>(
+        _ keyPath: KeyPath<Element, Result>
+    ) -> Observable<Result> {
         map { $0[keyPath: keyPath] }
     }
 
-    public func compactMap<Result>(_ keyPath: KeyPath<Element, Result?>) -> Observable<Result> {
+    public func compactMap<Result>(
+        _ keyPath: KeyPath<Element, Result?>
+    ) -> Observable<Result> {
         compactMap { $0[keyPath: keyPath] }
     }
 
-    public func `as`<Transformed>(_ transformedType: Transformed.Type) -> Observable<Transformed?> {
+    public func `as`<Transformed>(
+        _ transformedType: Transformed.Type
+    ) -> Observable<Transformed?> {
         map { $0 as? Transformed }
     }
 
-    public func of<Transformed>(_ transformedType: Transformed.Type) -> Observable<Transformed> {
+    public func of<Transformed>(
+        _ transformedType: Transformed.Type
+    ) -> Observable<Transformed> {
         compactMap { $0 as? Transformed }
-    }
-
-    public func with<Inserted>(_ element: @escaping @autoclosure () -> Inserted) -> Observable<(Element, Inserted)> {
-        map { ($0, element()) }
-    }
-
-    public func with<A, B, Inserted>(_ element: @escaping @autoclosure () -> Inserted) -> Observable<(A, B, Inserted)> where Element == (A, B) {
-        map { ($0.0, $0.1, element()) }
     }
 
     public func reverse<A, B>() -> Observable<(B, A)> where Element == (A, B) {
@@ -69,8 +89,58 @@ extension ObservableType {
         `catch` { _ in .empty() }
     }
 
+    public func map<A, B>(
+        _ transformA: @escaping (Element) -> A,
+        _ transformB: @escaping (Element) -> B
+    ) -> Observable<(A, B)> {
+        map { e in
+            (transformA(e), transformB(e))
+        }
+    }
+
+    public func map<A, B, C>(
+        _ transformA: @escaping (Element) -> A,
+        _ transformB: @escaping (Element) -> B,
+        _ transformC: @escaping (Element) -> C
+    ) -> Observable<(A, B, C)> {
+        map { e in
+            (transformA(e), transformB(e), transformC(e))
+        }
+    }
+
+    public func mutate(
+        _ mutation: @escaping (inout Element) -> Void
+    ) -> Observable<Element> {
+        map { output in
+            var result = output
+            mutation(&result)
+            return result
+        }
+    }
+
+    @available(*, deprecated, renamed: "wrapsResult")
     public func mapToResult() -> Observable<Swift.Result<Element, Error>> {
+        wrapsResult()
+    }
+
+    public func wrapsResult() -> Observable<Swift.Result<Element, Error>> {
         materialize().compactMap(Swift.Result.init(event:))
+    }
+
+    public func withFlatMapLatest<Source: ObservableConvertibleType>(
+        _ selector: @escaping (Element) throws -> Source
+    ) -> Observable<(Element, Source.Element)> {
+        flatMapLatest { element in
+            (try selector(element)).asObservable().with(element).reverse()
+        }
+    }
+
+    public func withFlatMap<Source: ObservableConvertibleType>(
+        _ selector: @escaping (Element) throws -> Source
+    ) -> Observable<(Element, Source.Element)> {
+        flatMap { element in
+            (try selector(element)).asObservable().with(element).reverse()
+        }
     }
 }
 
