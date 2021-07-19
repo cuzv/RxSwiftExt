@@ -118,12 +118,7 @@ extension ObservableType {
         }
     }
 
-    @available(*, deprecated, renamed: "wrapsResult")
-    public func mapToResult() -> Observable<Swift.Result<Element, Error>> {
-        wrapsResult()
-    }
-
-    public func wrapsResult() -> Observable<Swift.Result<Element, Error>> {
+    public func formResult() -> Observable<Swift.Result<Element, Error>> {
         materialize().compactMap(Swift.Result.init(event:))
     }
 
