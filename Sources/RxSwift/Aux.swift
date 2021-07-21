@@ -18,17 +18,17 @@ public enum RxOperators {
         }
     }
 
-    public static func formResult<In, Out>(
+    public static func formResult<In, Out, E: ErrorRepresentable>(
         _ transform: @escaping (In) -> Observable<Out>
-    ) -> (In) -> Observable<Result<Out, Error>> {
+    ) -> (In) -> Observable<Result<Out, E>> {
         return {
             transform($0).formResult()
         }
     }
 
-    public static func withFormResult<In, Out>(
+    public static func withFormResult<In, Out, E: ErrorRepresentable>(
         _ transform: @escaping (In) -> Observable<Out>
-    ) -> (In) -> Observable<Result<(In, Out), Error>> {
+    ) -> (In) -> Observable<Result<(In, Out), E>> {
         return {
             transform($0).with($0).reverse().formResult()
         }

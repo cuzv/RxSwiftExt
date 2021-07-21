@@ -118,8 +118,17 @@ extension ObservableType {
         }
     }
 
-    public func formResult() -> Observable<Swift.Result<Element, Error>> {
-        materialize().compactMap(Swift.Result.init(event:))
+    public func formResult<E: ErrorRepresentable>() -> Observable<Swift.Result<Element, E>> {
+        materialize().compactMap { event in
+            switch event {
+            case let .next(element):
+                return .success(element)
+            case let .error(error):
+                return .failure(E(error))
+            case .completed:
+                return nil
+            }
+        }
     }
 
     public func withFlatMapLatest<Source: ObservableConvertibleType>(
@@ -135,21 +144,6 @@ extension ObservableType {
     ) -> Observable<(Element, Source.Element)> {
         flatMap { element in
             (try selector(element)).asObservable().with(element).reverse()
-        }
-    }
-}
-
-extension Swift.Result {
-    init?(event: Event<Success>) {
-        switch event {
-        case let .next(element):
-            self = .success(element)
-        case let .error(error) where error is Failure:
-            self = .failure(error as! Failure)
-        case .error:
-            return nil
-        case .completed:
-            return nil
         }
     }
 }
