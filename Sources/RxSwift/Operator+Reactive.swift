@@ -195,8 +195,12 @@ extension ObservableType where Element: Collection {
         ignore(\.isEmpty)
     }
 
-    public func mapElements<Transformed>(_ transform: @escaping (Element.Element) throws -> Transformed) -> Observable<[Transformed]> {
+    public func tryMapMany<Result>(_ transform: @escaping (Element.Element) throws -> Result) -> Observable<[Result]> {
         map { try $0.map(transform) }
+    }
+
+    public func mapMany<Result>(_ transform: @escaping (Element.Element) -> Result) -> Observable<[Result]> {
+        map { $0.map(transform) }
     }
 }
 

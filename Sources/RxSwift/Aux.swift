@@ -1,7 +1,7 @@
 import Foundation
 import RxSwift
 
-public enum RxOperators {
+public enum Rx {
     public static func materialize<In, Out>(
         _ transform: @escaping (In) -> Observable<Out>
     ) -> (In) -> Observable<Event<Out>> {
