@@ -3,7 +3,7 @@ import UIKit
 import RxSwift
 import RxCocoa
 
-extension Reactive where Base: UICollectionView {
+extension Reactive where Base: UIScrollView {
     public func nearBottom(padding constant: CGFloat = 60) -> Observable<Bool> {
         contentOffset
             .map(\.y)
