@@ -1,95 +1,95 @@
 import RxSwift
 
-extension ObservableType {
-  public func optional() -> Observable<Element?> {
+public extension ObservableType {
+  func optional() -> Observable<Element?> {
     map(Optional.init)
   }
 
-  public func eraseType() -> Observable<Void> {
+  func eraseType() -> Observable<Void> {
     map { _ in () }
   }
 
-  public func with<Inserted>(
+  func with<Inserted>(
     _ inserted: Inserted
   ) -> Observable<(Element, Inserted)> {
-    map({ ($0, inserted) })
+    map { ($0, inserted) }
   }
 
-  public func withDeferred<Inserted>(
+  func withDeferred<Inserted>(
     _ inserted: @escaping @autoclosure () -> Inserted
   ) -> Observable<(Element, Inserted)> {
-    map({ ($0, inserted()) })
+    map { ($0, inserted()) }
   }
 
-  public func succeeding<Successor>(
+  func succeeding<Successor>(
     _ successor: Successor
   ) -> Observable<Successor> {
     map { _ in successor }
   }
 
-  public func succeedingDeferred<Successor>(
+  func succeedingDeferred<Successor>(
     _ successor: @escaping @autoclosure () -> Successor
   ) -> Observable<Successor> {
     map { _ in successor() }
   }
 
-  public func unwrap<Wrapped>() -> Observable<Wrapped> where Element == Wrapped? {
+  func unwrap<Wrapped>() -> Observable<Wrapped> where Element == Wrapped? {
     flatMap(Observable.from(optional:))
   }
 
-  public func map<Result>(
+  func map<Result>(
     _ keyPath: KeyPath<Element, Result>
   ) -> Observable<Result> {
     map { $0[keyPath: keyPath] }
   }
 
-  public func compactMap<Result>(
+  func compactMap<Result>(
     _ keyPath: KeyPath<Element, Result?>
   ) -> Observable<Result> {
     compactMap { $0[keyPath: keyPath] }
   }
 
-  public func `as`<Transformed>(
+  func `as`<Transformed>(
     _ transformedType: Transformed.Type
   ) -> Observable<Transformed?> {
     map { $0 as? Transformed }
   }
 
-  public func of<Transformed>(
+  func of<Transformed>(
     _ transformedType: Transformed.Type
   ) -> Observable<Transformed> {
     compactMap { $0 as? Transformed }
   }
 
-  public func reverse<A, B>() -> Observable<(B, A)> where Element == (A, B) {
+  func reverse<A, B>() -> Observable<(B, A)> where Element == (A, B) {
     map { ($0.1, $0.0) }
   }
 
-  public func reverse<A, B, C>() -> Observable<(C, B, A)> where Element == (A, B, C) {
+  func reverse<A, B, C>() -> Observable<(C, B, A)> where Element == (A, B, C) {
     map { ($0.2, $0.1, $0.0) }
   }
 
-  public func squeeze<A, B, C>() -> Observable<(A, B, C)> where Element == (((A, B), C)) {
+  func squeeze<A, B, C>() -> Observable<(A, B, C)> where Element == ((A, B), C) {
     map { ($0.0, $0.1, $1) }
   }
 
-  public func filter(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
+  func filter(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
     filter { $0[keyPath: keyPath] }
   }
 
-  public func ignore(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
+  func ignore(_ keyPath: KeyPath<Element, Bool>) -> Observable<Element> {
     filter { !$0[keyPath: keyPath] }
   }
 
-  public func ignore(_ predicate: @escaping (Element) throws -> Bool) -> Observable<Element> {
+  func ignore(_ predicate: @escaping (Element) throws -> Bool) -> Observable<Element> {
     filter { try !predicate($0) }
   }
 
-  public func catchErrorJustComplete() -> Observable<Element> {
+  func catchErrorJustComplete() -> Observable<Element> {
     `catch` { _ in .empty() }
   }
 
-  public func map<A, B>(
+  func map<A, B>(
     _ transformA: @escaping (Element) -> A,
     _ transformB: @escaping (Element) -> B
   ) -> Observable<(A, B)> {
@@ -98,7 +98,7 @@ extension ObservableType {
     }
   }
 
-  public func map<A, B, C>(
+  func map<A, B, C>(
     _ transformA: @escaping (Element) -> A,
     _ transformB: @escaping (Element) -> B,
     _ transformC: @escaping (Element) -> C
@@ -108,7 +108,7 @@ extension ObservableType {
     }
   }
 
-  public func mutate(
+  func mutate(
     _ mutation: @escaping (inout Element) -> Void
   ) -> Observable<Element> {
     map { output in
@@ -118,118 +118,118 @@ extension ObservableType {
     }
   }
 
-  public func formResult<E: ErrorRepresentable>() -> Observable<Swift.Result<Element, E>> {
+  func formResult<E: ErrorRepresentable>() -> Observable<Swift.Result<Element, E>> {
     materialize().compactMap { event in
       switch event {
       case let .next(element):
-        return .success(element)
+        .success(element)
       case let .error(error):
-        return .failure(E(error))
+        .failure(E(error))
       case .completed:
-        return nil
+        nil
       }
     }
   }
 
-  public func withFlatMapLatest<Source: ObservableConvertibleType>(
+  func withFlatMapLatest<Source: ObservableConvertibleType>(
     _ selector: @escaping (Element) throws -> Source
   ) -> Observable<(Element, Source.Element)> {
     flatMapLatest { element in
-      (try selector(element)).asObservable().with(element).reverse()
+      try (selector(element)).asObservable().with(element).reverse()
     }
   }
 
-  public func withFlatMap<Source: ObservableConvertibleType>(
+  func withFlatMap<Source: ObservableConvertibleType>(
     _ selector: @escaping (Element) throws -> Source
   ) -> Observable<(Element, Source.Element)> {
     flatMap { element in
-      (try selector(element)).asObservable().with(element).reverse()
+      try (selector(element)).asObservable().with(element).reverse()
     }
   }
 }
 
-extension ObservableType where Element: Equatable {
-  public func filter(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
+public extension ObservableType where Element: Equatable {
+  func filter(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
     filter { valueToFilter() == $0 }
   }
 
-  public func filter(_ valuesToFilter: Element...) -> Observable<Element> {
+  func filter(_ valuesToFilter: Element...) -> Observable<Element> {
     filter { valuesToFilter.contains($0) }
   }
 
-  public func filter<Sequence: Swift.Sequence>(_ valuesToFilter: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
+  func filter<Sequence: Swift.Sequence>(_ valuesToFilter: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
     filter { valuesToFilter().contains($0) }
   }
 
-  public func ignore(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
+  func ignore(_ valueToFilter: @escaping @autoclosure () -> Element) -> Observable<Element> {
     filter { valueToFilter() != $0 }
   }
 
-  public func ignore(_ valuesToIgnore: Element...) -> Observable<Element> {
+  func ignore(_ valuesToIgnore: Element...) -> Observable<Element> {
     filter { !valuesToIgnore.contains($0) }
   }
 
-  public func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: Sequence) -> Observable<Element> where Sequence.Element == Element {
+  func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: Sequence) -> Observable<Element> where Sequence.Element == Element {
     filter { !valuesToIgnore.contains($0) }
   }
 
-  public func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
+  func ignore<Sequence: Swift.Sequence>(_ valuesToIgnore: @escaping @autoclosure () -> Sequence) -> Observable<Element> where Sequence.Element == Element {
     filter { !valuesToIgnore().contains($0) }
   }
 }
 
-extension ObservableType where Element == String? {
-  public func ignoreEmpty() -> Observable<String> {
+public extension ObservableType where Element == String? {
+  func ignoreEmpty() -> Observable<String> {
     unwrap().ignoreEmpty()
   }
 }
 
-extension ObservableType where Element == Bool {
-  public func toggle() -> Observable<Bool> {
+public extension ObservableType where Element == Bool {
+  func toggle() -> Observable<Bool> {
     map(!)
   }
 }
 
-extension ObservableType where Element: Collection {
-  public func ignoreEmpty() -> Observable<Element> {
+public extension ObservableType where Element: Collection {
+  func ignoreEmpty() -> Observable<Element> {
     ignore(\.isEmpty)
   }
 
-  public func tryMapMany<Result>(_ transform: @escaping (Element.Element) throws -> Result) -> Observable<[Result]> {
+  func tryMapMany<Result>(_ transform: @escaping (Element.Element) throws -> Result) -> Observable<[Result]> {
     map { try $0.map(transform) }
   }
 
-  public func mapMany<Result>(_ transform: @escaping (Element.Element) -> Result) -> Observable<[Result]> {
+  func mapMany<Result>(_ transform: @escaping (Element.Element) -> Result) -> Observable<[Result]> {
     map { $0.map(transform) }
   }
 }
 
-extension ObservableType where Element: EventConvertible {
-  public func elements() -> Observable<Element.Element> {
+public extension ObservableType where Element: EventConvertible {
+  func elements() -> Observable<Element.Element> {
     compactMap(\.event.element)
   }
 
-  public func errors() -> Observable<Swift.Error> {
+  func errors() -> Observable<Swift.Error> {
     compactMap(\.event.error)
   }
 
-  public func terminal() -> Observable<Bool> {
+  func terminal() -> Observable<Bool> {
     map(\.event.isStopEvent)
   }
 }
 
 import ResultConvertible
 
-extension ObservableType where Element: ResultConvertible {
-  public func elements() -> Observable<Element.Success> {
+public extension ObservableType where Element: ResultConvertible {
+  func elements() -> Observable<Element.Success> {
     compactMap(\.result.success)
   }
 
-  public func errors() -> Observable<Element.Failure> {
+  func errors() -> Observable<Element.Failure> {
     compactMap(\.result.failure)
   }
 
-  public func unwrap() -> Observable<Element.Success> {
+  func unwrap() -> Observable<Element.Success> {
     .create { observer in
       self.subscribe { event in
         switch event {
@@ -250,8 +250,8 @@ extension ObservableType where Element: ResultConvertible {
   }
 }
 
-extension Observable {
-  public func merge(_ others: Observable<Element>...) -> Observable<Element> {
+public extension Observable {
+  func merge(_ others: Observable<Element>...) -> Observable<Element> {
     Observable.merge([self] + others)
   }
 }

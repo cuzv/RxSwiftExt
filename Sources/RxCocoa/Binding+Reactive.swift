@@ -1,10 +1,10 @@
-import RxSwift
 import RxCocoa
+import RxSwift
 
 // MARK: - Binding
 
-extension ObservableType {
-  public func bind<Target>(
+public extension ObservableType {
+  func bind<Target>(
     to target: Target,
     action: @escaping (Target, Element) -> Void
   ) -> Disposable {
@@ -15,7 +15,7 @@ extension ObservableType {
 
   /// Bind Observable to Closure.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: @escaping (Target, Element) -> Void
   ) -> Disposable {
@@ -24,11 +24,11 @@ extension ObservableType {
 
   /// Bind Observable to Optional Closure.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: ((Target, Element) -> Void)?
   ) -> Disposable {
-    if let action = action {
+    if let action {
       return bind(to: target, action: action)
     }
     return Disposables.create()
@@ -36,7 +36,7 @@ extension ObservableType {
 
   /// Bind Observable to Closure that take no event element.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: @escaping (Target) -> Void
   ) -> Disposable {
@@ -49,11 +49,11 @@ extension ObservableType {
 
   /// Bind Observable to Optional Closure that take no event element.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: ((Target) -> Void)?
   ) -> Disposable {
-    if let action = action {
+    if let action {
       return bind(to: target, action: action)
     }
     return Disposables.create()
@@ -61,7 +61,7 @@ extension ObservableType {
 
   /// Bind Observable to Closure that take event element as two arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B>(
     to target: Target,
     action: @escaping (Target, A, B) -> Void
   ) -> Disposable where (A, B) == Element {
@@ -74,7 +74,7 @@ extension ObservableType {
 
   /// Bind Observable to Optional Closure that take event element as two arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B>(
     to target: Target,
     action: ((Target, A, B) -> Void)?
   ) -> Disposable where (A, B) == Element {
@@ -87,7 +87,7 @@ extension ObservableType {
 
   /// Bind Observable to Closure that take event element as three arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
     to target: Target,
     action: @escaping (Target, A, B, C) -> Void
   ) -> Disposable where (A, B, C) == Element {
@@ -100,7 +100,7 @@ extension ObservableType {
 
   /// Bind Observable to Optional Closure that take event element as three arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
     to target: Target,
     action: ((Target, A, B, C) -> Void)?
   ) -> Disposable where (A, B, C) == Element {
@@ -113,7 +113,7 @@ extension ObservableType {
 
   /// Bind Observable to Method.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: @escaping (Target) -> (Element) -> Void
   ) -> Disposable {
@@ -126,7 +126,7 @@ extension ObservableType {
 
   /// Bind Observable to Method that take no event element.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     action: @escaping (Target) -> () -> Void
   ) -> Disposable {
@@ -139,7 +139,7 @@ extension ObservableType {
 
   /// Bind Observable to Method that take event element as two arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B>(
     to target: Target,
     action: @escaping (Target) -> (A, B) -> Void
   ) -> Disposable where (A, B) == Element {
@@ -152,7 +152,7 @@ extension ObservableType {
 
   /// Bind Observable to Method that take event element as three arguments.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
+  func bind<Target: AnyObject & ReactiveCompatible, A, B, C>(
     to target: Target,
     action: @escaping (Target) -> (A, B, C) -> Void
   ) -> Disposable where (A, B, C) == Element {
@@ -165,7 +165,7 @@ extension ObservableType {
 
   /// Bind Observable to KeyPath.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     keyPath: ReferenceWritableKeyPath<Target, Element>
   ) -> Disposable {
@@ -178,7 +178,7 @@ extension ObservableType {
 
   /// Bind Observable to Optional KeyPath.
   @discardableResult
-  public func bind<Target: AnyObject & ReactiveCompatible>(
+  func bind<Target: AnyObject & ReactiveCompatible>(
     to target: Target,
     keyPath: ReferenceWritableKeyPath<Target, Element?>
   ) -> Disposable {
@@ -200,9 +200,9 @@ extension PublishSubject: ReactiveCompatible {}
 extension BehaviorRelay: ReactiveCompatible {}
 extension PublishRelay: ReactiveCompatible {}
 
-extension ObservableType {
+public extension ObservableType {
   @discardableResult
-  public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(
+  func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(
     to observer: Observer
   ) -> Disposable where Observer.Element == Element {
     take(until: observer.rx.deallocated).subscribe { [weak observer] e in
@@ -211,14 +211,14 @@ extension ObservableType {
   }
 
   @discardableResult
-  public func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(
+  func bind<Observer: AnyObject & ReactiveCompatible & ObserverType>(
     to observer: Observer
   ) -> Disposable where Observer.Element == Element? {
     map(Optional.init).bind(to: observer)
   }
 
   @discardableResult
-  public func bind(to relay: PublishRelay<Element>) -> Disposable {
+  func bind(to relay: PublishRelay<Element>) -> Disposable {
     take(until: relay.rx.deallocated).subscribe { [weak relay] e in
       switch e {
       case let .next(element):
@@ -232,19 +232,18 @@ extension ObservableType {
   }
 
   @discardableResult
-  public func bind(to relay: PublishRelay<Element?>) -> Disposable {
+  func bind(to relay: PublishRelay<Element?>) -> Disposable {
     map(Optional.init).bind(to: relay)
   }
 
   @discardableResult
-  public func bind(to relay: BehaviorRelay<Element>) -> Disposable {
+  func bind(to relay: BehaviorRelay<Element>) -> Disposable {
     take(until: relay.rx.deallocated).subscribe { [weak relay] e in
       switch e {
       case let .next(element):
         relay?.accept(element)
       case let .error(error):
         rxFatalErrorInDebug("Binding error to behavior relay: \(error)")
-        break
       case .completed:
         break
       }
@@ -252,15 +251,15 @@ extension ObservableType {
   }
 
   @discardableResult
-  public func bind(to relay: BehaviorRelay<Element?>) -> Disposable {
+  func bind(to relay: BehaviorRelay<Element?>) -> Disposable {
     map(Optional.init).bind(to: relay)
   }
 }
 
 private func rxFatalErrorInDebug(_ lastMessage: @autoclosure () -> String, file: StaticString = #file, line: UInt = #line) {
-  #if DEBUG
+#if DEBUG
   fatalError(lastMessage(), file: file, line: line)
-  #else
+#else
   print("\(file):\(line): \(lastMessage())")
-  #endif
+#endif
 }

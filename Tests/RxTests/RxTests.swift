@@ -1,7 +1,7 @@
-import XCTest
-@testable import RxSwift
 @testable import RxRelay
+@testable import RxSwift
 @testable import RxSwiftExt
+import XCTest
 
 final class SpmTests: XCTestCase {
   func testExample() {
@@ -17,7 +17,7 @@ final class SpmTests: XCTestCase {
   }
 
   func request(in: String) -> Observable<Int> {
-    return .just(1)
+    .just(1)
   }
 
   static var allTests = [

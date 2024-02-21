@@ -1,5 +1,5 @@
-import RxSwift
 import RxCocoa
+import RxSwift
 
 // MARK: - BindingTargetProvider
 
@@ -23,12 +23,12 @@ public struct BindingTarget<Value>: BindingTargetProvider {
   }
 }
 
-extension BindingTarget {
-  public init<Object: AnyObject>(object: Object, action: @escaping (Value) -> Void) {
+public extension BindingTarget {
+  init(object: some AnyObject, action: @escaping (Value) -> Void) {
     self.init(lifetime: .of(object), action: action)
   }
 
-  public init<Object: AnyObject>(object: Object, keyPath: WritableKeyPath<Object, Value>) {
+  init<Object: AnyObject>(object: Object, keyPath: WritableKeyPath<Object, Value>) {
     self.init(object: object) { [weak object = object] value in
       object?[keyPath: keyPath] = value
     }
@@ -44,13 +44,14 @@ precedencegroup BindingPrecedence {
   higherThan: AssignmentPrecedence
 }
 
-infix operator => : BindingPrecedence
+infix operator =>: BindingPrecedence
 
-extension BindingTargetProvider {
+public extension BindingTargetProvider {
   @discardableResult
-  public static func =>
+  static func =>
   <Source: ObservableType>(source: Source, provider: Self) -> Disposable
-  where Value == Source.Element {
+    where Value == Source.Element
+  {
     let bindingTarget = provider.bindingTarget
     return source.asObservable()
       .takeDuring(bindingTarget.lifetime)
@@ -58,20 +59,21 @@ extension BindingTargetProvider {
   }
 
   @discardableResult
-  public static func =>
+  static func =>
   <Source: ObservableType>(source: Source, provider: Self) -> Disposable
-  where Value == Source.Element? {
+    where Value == Source.Element?
+  {
     source.map(Optional.init) => provider
   }
 }
 
-extension BindingTargetProvider where Value == Void {
+public extension BindingTargetProvider where Value == Void {
   @discardableResult
-  public static func =>
-  <Source: ObservableType>(source: Source, provider: Self) -> Disposable {
+  static func =>
+  (source: some ObservableType, provider: Self) -> Disposable {
     let bindingTarget = provider.bindingTarget
     return source.asObservable()
-      .map({ _ in })
+      .map { _ in }
       .takeDuring(bindingTarget.lifetime)
       .bind(onNext: bindingTarget.action)
   }
@@ -79,92 +81,92 @@ extension BindingTargetProvider where Value == Void {
 
 // MARK: - Reactive Extensions
 
-extension Reactive where Base: AnyObject {
+public extension Reactive where Base: AnyObject {
   private func makeBindingTarget<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
     .init(object: base, keyPath: keyPath)
   }
 
-  public subscript<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
+  subscript<Value>(keyPath: ReferenceWritableKeyPath<Base, Value>) -> BindingTarget<Value> {
     .init(object: base, keyPath: keyPath)
   }
 
-  public subscript<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
+  subscript<Value>(action: @escaping (Base) -> (Value) -> Void) -> BindingTarget<Value> {
     .init(object: base) { [weak base = base] value in
-      if let base = base {
+      if let base {
         action(base)(value)
       }
     }
   }
 
-  public func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
+  func makeBindingTarget<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
     .init(object: base) { [weak base = base] value in
-      if let base = base {
+      if let base {
         action?(base, value)
       }
     }
   }
 
-  public subscript<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
+  subscript<Value>(action: ((Base, Value) -> Void)?) -> BindingTarget<Value> {
     makeBindingTarget(action: action)
   }
 
-  public subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
+  subscript<Value>(action: @escaping (Base, Value) -> Void) -> BindingTarget<Value> {
     makeBindingTarget(action: action)
   }
 
-  public subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
+  subscript(action: @escaping (Base) -> () -> Void) -> BindingTarget<Void> {
     .init(object: base) { [weak base = base] _ in
-      if let base = base {
+      if let base {
         action(base)()
       }
     }
   }
 
-  public subscript(action: ((Base) -> Void)?) -> BindingTarget<Void> {
+  subscript(action: ((Base) -> Void)?) -> BindingTarget<Void> {
     makeBindingTarget { base, _ in
       action?(base)
     }
   }
 
-  public subscript(action: @escaping (Base) -> Void) -> BindingTarget<Void> {
+  subscript(action: @escaping (Base) -> Void) -> BindingTarget<Void> {
     self[Optional(action)]
   }
 
-  public subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
+  subscript<A, B>(action: @escaping (Base) -> (A, B) -> Void) -> BindingTarget<(A, B)> {
     .init(object: base) { [weak base = base] a, b in
-      if let base = base {
+      if let base {
         action(base)(a, b)
       }
     }
   }
 
-  public subscript<A, B>(action: ((Base, A, B) -> Void)?) -> BindingTarget<(A, B)> {
+  subscript<A, B>(action: ((Base, A, B) -> Void)?) -> BindingTarget<(A, B)> {
     makeBindingTarget { base, args in
       let (a, b) = args
       action?(base, a, b)
     }
   }
 
-  public subscript<A, B>(action: @escaping (Base, A, B) -> Void) -> BindingTarget<(A, B)> {
+  subscript<A, B>(action: @escaping (Base, A, B) -> Void) -> BindingTarget<(A, B)> {
     self[Optional(action)]
   }
 
-  public subscript<A, B, C>(action: @escaping (Base) -> (A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
+  subscript<A, B, C>(action: @escaping (Base) -> (A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
     .init(object: base) { [weak base = base] a, b, c in
-      if let base = base {
+      if let base {
         action(base)(a, b, c)
       }
     }
   }
 
-  public subscript<A, B, C>(action: ((Base, A, B, C) -> Void)?) -> BindingTarget<(A, B, C)> {
+  subscript<A, B, C>(action: ((Base, A, B, C) -> Void)?) -> BindingTarget<(A, B, C)> {
     makeBindingTarget { base, args in
       let (a, b, c) = args
       action?(base, a, b, c)
     }
   }
 
-  public subscript<A, B, C>(action: @escaping (Base, A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
+  subscript<A, B, C>(action: @escaping (Base, A, B, C) -> Void) -> BindingTarget<(A, B, C)> {
     self[Optional(action)]
   }
 }
@@ -173,11 +175,12 @@ extension Reactive where Base: AnyObject {
 
 import RxRelay
 
-extension ObserverType where Self: AnyObject & BindingTargetProvider {
-  public var bindingTarget: BindingTarget<Element> {
-    return .init(object: self, action: onNext)
+public extension ObserverType where Self: AnyObject & BindingTargetProvider {
+  var bindingTarget: BindingTarget<Element> {
+    .init(object: self, action: onNext)
   }
 }
+
 extension ReplaySubject: BindingTargetProvider {}
 extension BehaviorSubject: BindingTargetProvider {}
 extension PublishSubject: BindingTargetProvider {}
@@ -185,10 +188,12 @@ extension PublishSubject: BindingTargetProvider {}
 public protocol RxRelayObject: ObservableType {
   func accept(_ event: Element)
 }
-extension RxRelayObject where Self: AnyObject & BindingTargetProvider {
-  public var bindingTarget: BindingTarget<Element> {
-    return .init(object: self, action: accept)
+
+public extension RxRelayObject where Self: AnyObject & BindingTargetProvider {
+  var bindingTarget: BindingTarget<Element> {
+    .init(object: self, action: accept)
   }
 }
+
 extension PublishRelay: RxRelayObject, BindingTargetProvider {}
 extension BehaviorRelay: RxRelayObject, BindingTargetProvider {}

@@ -4,8 +4,7 @@ import RxSwift
 public final class Lifetime {
   fileprivate let subject = ReplaySubject<Void>.create(bufferSize: 1)
 
-  private init() {
-  }
+  private init() {}
 
   deinit {
     subject.onNext(())
@@ -14,7 +13,7 @@ public final class Lifetime {
 }
 
 extension Lifetime {
-  private struct AssociatedObjectKeys {
+  private enum AssociatedObjectKeys {
     static var lifetime: Void?
   }
 
@@ -34,8 +33,8 @@ extension Lifetime {
   }
 }
 
-extension ObservableType {
-  public func takeDuring(_ lifetime: Lifetime) -> Observable<Element> {
+public extension ObservableType {
+  func takeDuring(_ lifetime: Lifetime) -> Observable<Element> {
     take(until: lifetime.subject)
   }
 }

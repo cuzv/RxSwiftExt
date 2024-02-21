@@ -5,7 +5,7 @@ public enum Rx {
   public static func materialize<In, Out>(
     _ transform: @escaping (In) -> Observable<Out>
   ) -> (In) -> Observable<Event<Out>> {
-    return {
+    {
       transform($0).materialize()
     }
   }
@@ -13,7 +13,7 @@ public enum Rx {
   public static func withMaterialize<In, Out>(
     _ transform: @escaping (In) -> Observable<Out>
   ) -> (In) -> Observable<Event<(In, Out)>> {
-    return {
+    {
       transform($0).with($0).reverse().materialize()
     }
   }
@@ -21,7 +21,7 @@ public enum Rx {
   public static func formResult<In, Out, E: ErrorRepresentable>(
     _ transform: @escaping (In) -> Observable<Out>
   ) -> (In) -> Observable<Result<Out, E>> {
-    return {
+    {
       transform($0).formResult()
     }
   }
@@ -29,7 +29,7 @@ public enum Rx {
   public static func withFormResult<In, Out, E: ErrorRepresentable>(
     _ transform: @escaping (In) -> Observable<Out>
   ) -> (In) -> Observable<Result<(In, Out), E>> {
-    return {
+    {
       transform($0).with($0).reverse().formResult()
     }
   }

@@ -9,20 +9,20 @@ public enum RxScheduler {
 
   public func toImmediateScheduler() -> ImmediateSchedulerType {
     switch self {
-    case .main: return MainScheduler.instance
-    case let .serial(qos): return SerialDispatchQueueScheduler(qos: qos)
-    case let .concurrent(qos): return ConcurrentDispatchQueueScheduler(qos: qos)
-    case let .operation(queue): return OperationQueueScheduler(operationQueue: queue)
+    case .main: MainScheduler.instance
+    case let .serial(qos): SerialDispatchQueueScheduler(qos: qos)
+    case let .concurrent(qos): ConcurrentDispatchQueueScheduler(qos: qos)
+    case let .operation(queue): OperationQueueScheduler(operationQueue: queue)
     }
   }
 }
 
-extension ObservableType {
-  public func observeOn(scheduler: RxScheduler) -> Observable<Element> {
+public extension ObservableType {
+  func observeOn(scheduler: RxScheduler) -> Observable<Element> {
     observe(on: scheduler.toImmediateScheduler())
   }
 
-  public func subscribeOn(_ scheduler: RxScheduler) -> Observable<Element> {
+  func subscribeOn(_ scheduler: RxScheduler) -> Observable<Element> {
     subscribe(on: scheduler.toImmediateScheduler())
   }
 }

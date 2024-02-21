@@ -1,13 +1,13 @@
-import UIKit
-import RxSwift
 import RxCocoa
+import RxSwift
+import UIKit
 
 #if canImport(RxGesture)
 import RxGesture
 
-extension Reactive where Base: UIView {
-  public var click: Observable<UITapGestureRecognizer> {
-    return base.rx.tapGesture().when(.recognized)
+public extension Reactive where Base: UIView {
+  var click: Observable<UITapGestureRecognizer> {
+    base.rx.tapGesture().when(.recognized)
   }
 }
 
