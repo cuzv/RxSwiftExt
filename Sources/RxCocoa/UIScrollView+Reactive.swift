@@ -8,10 +8,13 @@ public extension Reactive where Base: UIScrollView {
     contentOffset
       .map(\.y)
       .map { [unowned base] offsetY -> Bool in
-        let bottom = base.contentSize.height - offsetY - base.bounds.height
-        let isNearBottom = bottom > 0 && bottom < 60
-        return isNearBottom
+        guard base.contentSize.height > 0 else { return false }
+        let visibleHeight = base.frame.height - base.contentInset.top - base.contentInset.bottom
+        let threshold = offsetY + visibleHeight + constant
+        let hit = threshold > base.contentSize.height
+        return hit
       }
+      .distinctUntilChanged()
   }
 }
 #endif
